@@ -6,10 +6,30 @@ decision (for example `0001-add-local-transform-tests.md`).
 
 Each ADR must contain:
 
-- `## Context`
-- `## Decision`
-- `## Consequences`
-- `## Validation`
+- `## Context` — the problem, motivation, or situation that requires a decision.
+  What triggered this ADR? What constraint or requirement forced a choice? Include
+  relevant background (existing behavior, technical limitations, user pain) so a
+  reader unfamiliar with the project can understand *why* this decision came up.
+
+- `## Decision` — what was chosen and why. State the decision explicitly, then
+  explain the reasoning. Include key alternatives considered and why they were
+  rejected. A reader should be able to understand not just what was decided, but
+  why other options didn't win.
+
+- `## Constraints` — what this decision rules out or must not break. List
+  boundaries: things that must remain true (existing connectors keep working, no
+  new AWS resources, must support Python 3.11+, etc.) and things that are
+  explicitly out of scope. This section prevents scope creep and makes the
+  decision's limits clear.
+
+- `## Consequences` — trade-offs, side effects, and follow-up work. What becomes
+  easier or harder? What new dependencies or risks does this introduce? What will
+  need to change later? Include both positive and negative outcomes.
+
+- `## Validation` — how to verify this decision was implemented correctly. Reference
+  specific tests, manual checks, or CI steps that confirm the change works. Vague
+  statements like "tests pass" should be replaced with concrete verification: which
+  tests, what they assert, what manual steps were performed.
 
 ### Workflow
 
