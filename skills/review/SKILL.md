@@ -1,6 +1,6 @@
 ---
 name: review
-allowed-tools: Bash(gh issue view:*), Bash(gh search:*), Bash(gh issue list:*), Bash(gh pr review:*), Bash(gh pr diff:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api:*)
+allowed-tools: Bash(gh pr view:*), Bash(gh api:*), Bash(gh pr diff:*), Bash(gh pr review:*), Bash(find:*)
 description: Code review a pull request
 disable-model-invocation: false
 ---
@@ -9,43 +9,50 @@ Provide a code review for the given pull request.
 
 To do this, follow these steps precisely:
 
-1. Directly check via `gh pr view <number> --json state,isDraft,headRefOid`, plus `gh api repos/{owner}/{repo}/pulls/{number}/reviews`, whether the pull request (a) is closed, (b) is a draft, or (d) already has a review from you whose `commit_id` matches the current `headRefOid`. If any are true, do not proceed. No agent is needed for this step — it's a deterministic lookup.
-2. If none of the above apply, use a Haiku agent to check whether the pull request (c) does not need a code review (eg. because it is an automated pull request, or is very simple and obviously ok). If so, do not proceed.
-3. Use another Haiku agent to give you a list of file paths to (but not the contents of) any relevant CLAUDE.md files from the codebase: the root CLAUDE.md file (if one exists), as well as any CLAUDE.md files in the directories whose files the pull request modified
-4. Use a Haiku agent to view the pull request, and ask the agent to return a summary of the change
-5. Then, launch 2 parallel Sonnet agents to independently code review the change. The agents should do the following, then return a list of issues and the reason each issue was flagged (eg. CLAUDE.md adherence, bug, security, etc.):
-   a. Agent #1: Read the file changes in the pull request, then do a shallow scan for obvious bugs, and audit the changes for CLAUDE.md compliance. Avoid reading extra context beyond the changes, focusing just on the changes themselves. Focus on large bugs, and avoid small issues and nitpicks. Ignore likely false positives. Note that CLAUDE.md is guidance for Claude as it writes code, so not all instructions will be applicable during code review.
-   b. Agent #2: Review the changes for security concerns: input validation and sanitization, injection risks (SQL, command, XSS), authentication/authorization issues, secrets or credentials in code, and error handling that leaks sensitive info. Focus only on issues introduced or touched by this change.
-6. For each issue found in #4, launch a parallel `review-issue-scorer` subagent (falling back to a generic Haiku agent with the rubric below if `review-issue-scorer` isn't available) that takes the PR, issue description, and list of CLAUDE.md files (from step 2), and returns a score to indicate the agent's level of confidence for whether the issue is real or false positive. To do that, the agent should score each issue on a scale from 0-100, indicating its level of confidence. For issues that were flagged due to CLAUDE.md instructions, the agent should double check that the CLAUDE.md actually calls out that issue specifically. The scale is (give this rubric to the agent verbatim):
-   a. 0: Not confident at all. This is a false positive that doesn't stand up to light scrutiny, or is a pre-existing issue.
-   b. 25: Somewhat confident. This might be a real issue, but may also be a false positive. The agent wasn't able to verify that it's a real issue. If the issue is stylistic, it is one that was not explicitly called out in the relevant CLAUDE.md.
-   c. 50: Moderately confident. The agent was able to verify this is a real issue, but it might be a nitpick or not happen very often in practice. Relative to the rest of the PR, it's not very important.
-   d. 75: Highly confident. The agent double checked the issue, and verified that it is very likely it is a real issue that will be hit in practice. The existing approach in the PR is insufficient. The issue is very important and will directly impact the code's functionality, or it is an issue that is directly mentioned in the relevant CLAUDE.md.
-   e. 100: Absolutely certain. The agent double checked the issue, and confirmed that it is definitely a real issue, that will happen frequently in practice. The evidence directly confirms this.
-7. Filter out any issues with a score less than 75. If there are no issues that meet this criteria, do not proceed.
-8. Repeat the deterministic check from step 1 (a/b/d only — closed, draft, or already reviewed at current SHA) to make sure the pull request is still eligible. No agent needed here either.
-9. Finally, use `gh pr review <number> --comment -b "<body>"` to leave a formal review on the pull request with the result, tied to the current head commit. When writing your review, keep in mind to:
-   a. Keep your output brief
-   b. Avoid emojis
-   c. Link and cite relevant code, files, and URLs
+1. **Eligibility + context gather (bash only, no agent).** Run `gh pr view <number> --json state,isDraft,headRefOid,author,files` and `gh api repos/{owner}/{repo}/pulls/{number}/reviews`. Stop (do not proceed) if the PR is closed, is a draft, or already has a review from you whose `commit_id` matches the current `headRefOid`. Otherwise keep the file list and author from this call — do not re-fetch them in later steps.
 
-Examples of false positives, for steps 4 and 5:
+2. **Obvious-noise pre-filter (bash only, no agent).** Stop without invoking any agent if either is true:
+   - Every changed file matches a lockfile/generated-file pattern (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `*.snap`, `go.sum`, and similar).
+   - The PR author is a known bot account (e.g. `dependabot[bot]`, `renovate[bot]`).
 
-- Pre-existing issues
-- Something that looks like a bug but is not actually a bug
-- Pedantic nitpicks that a senior engineer wouldn't call out
-- Issues that a linter, typechecker, or compiler would catch (eg. missing or incorrect imports, type errors, broken tests, formatting issues, pedantic style issues like newlines). No need to run these build steps yourself -- it is safe to assume that they will be run separately as part of CI.
-- General code quality issues (eg. lack of test coverage, general security issues), unless explicitly required in CLAUDE.md
-- Changes in functionality that are likely intentional or are directly related to the broader change
-- Real issues, but on lines that the user did not modify in their pull request
+3. **Discover CLAUDE.md paths (bash only, no agent).** Using the file list from step 1, walk up each changed file's directory tree with `find` and collect any `CLAUDE.md` that exists, plus the repo root `CLAUDE.md` if present. De-duplicate.
+
+4. **Single Haiku agent call — triviality + summary.** Give the agent the PR diff and ask it to return only this JSON:
+   ```json
+   {"proceed": <bool>, "summary": "<1-3 sentence summary of the change>"}
+   ```
+   `proceed` is `false` if the PR is trivial, automated, or obviously fine and needs no human-facing review. If `proceed` is `false`, stop.
+
+5. **Parallel Sonnet subagents.** Launch the `review-bug-scanner` and `review-security` subagents in parallel. Give each the PR number, head SHA, and the CLAUDE.md paths from step 3. Each independently returns a list of issues (file/line, description, reason flagged).
+
+6. If neither agent returned any issues, stop.
+
+7. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 5 in a single request (never one call per issue, regardless of how many issues there are). It returns the evidence flags defined in its own spec — not a numeric score.
+
+8. **Apply the decision table yourself (no agent, deterministic).** For each issue, keep it only if ALL of these are true from step 7's output:
+   - `on_modified_lines`
+   - `verified_by_reading_file`
+   - `code_confirms_issue`
+   - `has_direct_evidence_quote`
+   - `pre_existing` is false
+   - `caught_by_tooling` is false
+
+   AND at least one of:
+   - `practical_impact == "high"`
+   - `claude_md_relevance == "explicit"`
+
+   Discard everything else. If nothing survives, stop.
+
+9. **Re-check eligibility (bash only, no agent).** Repeat the closed/draft/already-reviewed check from step 1 against the current `headRefOid`, in case state changed mid-run. If no longer eligible, stop without posting.
+
+10. **Post the review.** Use `gh pr review <number> --comment -b "<body>"`, tied to the current head commit. Keep the body brief, no emojis, and cite/link relevant code, files, and URLs.
 
 Notes:
 
-- Do not check build signal or attempt to build or typecheck the app. These will run separately, and are not relevant to your code review.
-- Use `gh` to interact with Github (eg. to fetch a pull request, or to create inline comments), rather than web fetch
-- Make a todo list first
-- You must cite and link each bug (eg. if referring to a CLAUDE.md, you must link it)
-- For your final comment, follow the following format precisely (assuming for this example that you found 3 issues):
+- Use `gh` to interact with GitHub rather than web fetch.
+- Make a todo list first.
+- You must cite and link each issue (e.g. if referring to a CLAUDE.md, link it).
+- For your final comment, follow this format precisely (example with 3 issues):
 
 ---
 
@@ -77,14 +84,15 @@ Found 3 issues:
 
 ### Code review
 
-No issues found. Checked for bugs and CLAUDE.md compliance.
+No issues found. Checked for bugs, security, and CLAUDE.md compliance.
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
-- When linking to code, follow the following format precisely, otherwise the Markdown preview won't render correctly: https://github.com/anthropics/claude-cli-internal/blob/c21d3c10bc8e898b7ac1a2d745bdc9bc4e423afe/package.json#L10-L15
-  - Requires full git sha
-  - You must provide the full sha. Commands like `https://github.com/owner/repo/blob/$(git rev-parse HEAD)/foo/bar` will not work, since your comment will be directly rendered in Markdown.
-  - Repo name must match the repo you're code reviewing
-  - # sign after the file name
-  - Line range format is L[start]-L[end]
-  - Provide at least 1 line of context before and after, centered on the line you are commenting about (eg. if you are commenting about lines 5-6, you should link to `L4-7`)
+---
+
+- When linking to code, follow this format precisely, otherwise the Markdown preview won't render correctly: `https://github.com/anthropics/claude-cli-internal/blob/c21d3c10bc8e898b7ac1a2d745bdc9bc4e423afe/package.json#L10-L15`
+  - Requires the full git sha — commands like `$(git rev-parse HEAD)` interpolated into the link will not work, since your comment is rendered directly as Markdown.
+  - Repo name must match the repo you're reviewing.
+  - `#` sign after the file name.
+  - Line range format is `L[start]-L[end]`.
+  - Provide at least 1 line of context before and after, centered on the flagged line (e.g. commenting on lines 5–6 → link to `L4-7`).
