@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""review-filter [SCORER_JSON_FILE]
+
+Applies the fixed decision table to review-issue-scorer output. Reads a
+JSON array from the given file, or from stdin if no file is given. Prints
+the surviving issues as a JSON array.
+
+This is pure boolean evaluation, not judgement -- the judgement already
+happened when review-issue-scorer verified each flag. Keeping this in a
+script guarantees identical results every run and costs zero reasoning
+tokens.
+"""
+import json
+import sys
+
+
+def keep(issue):
+    return (
+        issue.get("on_modified_lines") is True
+        and issue.get("verified_by_reading_file") is True
+        and issue.get("code_confirms_issue") is True
+        and issue.get("has_direct_evidence_quote") is True
+        and issue.get("pre_existing") is not True
+        and issue.get("caught_by_tooling") is not True
+        and (
+            issue.get("practical_impact") == "high"
+            or issue.get("claude_md_relevance") == "explicit"
+        )
+    )
+
+
+def main():
+    if len(sys.argv) > 2:
+        print("usage: review-filter [SCORER_JSON_FILE]", file=sys.stderr)
+        sys.exit(2)
+
+    if len(sys.argv) == 2:
+        with open(sys.argv[1]) as fh:
+            issues = json.load(fh)
+    else:
+        issues = json.load(sys.stdin)
+
+    survivors = [issue for issue in issues if keep(issue)]
+    print(json.dumps(survivors, indent=2))
+
+
+if __name__ == "__main__":
+    main()

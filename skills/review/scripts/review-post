@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+"""review-post PR_NUMBER BODY_FILE
+
+Posts a PR comment review using gh. Takes the body from a file (rather
+than an inline string) to avoid shell-quoting issues with multi-line
+review bodies containing quotes, backticks, or markdown.
+
+Only one correct implementation, so this is scripted rather than
+re-explained in the prompt every run.
+"""
+import subprocess
+import sys
+
+
+def main():
+    if len(sys.argv) != 3:
+        print("usage: review-post PR_NUMBER BODY_FILE", file=sys.stderr)
+        sys.exit(2)
+    pr_number, body_file = sys.argv[1], sys.argv[2]
+
+    result = subprocess.run(
+        ["gh", "pr", "review", pr_number, "--comment", "--body-file", body_file],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        print(result.stderr.strip(), file=sys.stderr)
+        sys.exit(1)
+    print(result.stdout.strip())
+
+
+if __name__ == "__main__":
+    main()

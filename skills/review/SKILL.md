@@ -1,55 +1,52 @@
 ---
 name: review
-allowed-tools: Bash(gh pr view:*), Bash(gh api:*), Bash(gh pr diff:*), Bash(gh pr review:*), Bash(find:*)
+allowed-tools: Bash(review-context:*), Bash(review-find-claude:*), Bash(review-filter:*), Bash(review-link:*), Bash(review-post:*), Bash(gh pr diff:*)
 description: Code review a pull request
 disable-model-invocation: false
 ---
 
 Provide a code review for the given pull request.
 
+Setup note: this skill depends on five scripts (`review-context`,
+`review-find-claude`, `review-filter`, `review-link`, `review-post`) being
+on `PATH`. They handle everything that has exactly one correct way to do
+it, so no tokens are spent explaining plumbing.
+
 To do this, follow these steps precisely:
 
-1. **Eligibility + context gather (bash only, no agent).** Run `gh pr view <number> --json state,isDraft,headRefOid,author,files` and `gh api repos/{owner}/{repo}/pulls/{number}/reviews`. Stop (do not proceed) if the PR is closed, is a draft, or already has a review from you whose `commit_id` matches the current `headRefOid`. Otherwise keep the file list and author from this call — do not re-fetch them in later steps.
+1. **Gather context.** Run `review-context <number>` and parse its JSON output. If `"eligible"` is `false`, stop — do not proceed. Keep `head_sha`, `author`, and `files` from this output for later steps; do not re-fetch them.
 
-2. **Obvious-noise pre-filter (bash only, no agent).** Stop without invoking any agent if either is true:
+2. **Obvious-noise pre-filter.** Using the `files` list from step 1, stop without invoking any agent if either is true:
    - Every changed file matches a lockfile/generated-file pattern (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `*.snap`, `go.sum`, and similar).
-   - The PR author is a known bot account (e.g. `dependabot[bot]`, `renovate[bot]`).
+   - `author` is a known bot account (e.g. `dependabot[bot]`, `renovate[bot]`).
 
-3. **Discover CLAUDE.md paths (bash only, no agent).** Using the file list from step 1, walk up each changed file's directory tree with `find` and collect any `CLAUDE.md` that exists, plus the repo root `CLAUDE.md` if present. De-duplicate.
-
-4. **Single Haiku agent call — triviality + summary.** Give the agent the PR diff and ask it to return only this JSON:
+3. **Single Haiku agent call — triviality + summary.** Give the agent the PR diff (`gh pr diff <number>`) and ask it to return only this JSON:
    ```json
    {"proceed": <bool>, "summary": "<1-3 sentence summary of the change>"}
    ```
-   `proceed` is `false` if the PR is trivial, automated, or obviously fine and needs no human-facing review. If `proceed` is `false`, stop.
+   `proceed` is `false` if the PR is trivial, automated, or obviously fine and needs no human-facing review. This judgement isn't scripted — the definition of "trivial" shifts over time and needs a model, not a fixed rule. If `proceed` is `false`, stop.
 
-5. **Parallel Sonnet subagents.** Launch the `review-bug-scanner` and `review-security` subagents in parallel. Give each the PR number, head SHA, and the CLAUDE.md paths from step 3. Each independently returns a list of issues (file/line, description, reason flagged).
+4. **Discover CLAUDE.md paths.** Run `review-find-claude` with the `files` list from step 1 as arguments. Use its output (one path per line) in the next step.
+
+5. **Parallel Sonnet subagents.** Launch the `review-bug-scanner` and `review-security` subagents in parallel. Give each the PR number, `head_sha`, and the CLAUDE.md paths from step 4. Each independently returns a list of issues (file/line, description, reason flagged). This is reasoning work and stays with the agents.
 
 6. If neither agent returned any issues, stop.
 
-7. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 5 in a single request (never one call per issue, regardless of how many issues there are). It returns the evidence flags defined in its own spec — not a numeric score.
+7. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 5 in a single request (never one call per issue). It returns evidence flags per issue — this also stays with a model, since verifying "does this code actually prove the issue" requires reading and judgement. Save its JSON output to a file.
 
-8. **Apply the decision table yourself (no agent, deterministic).** For each issue, keep it only if ALL of these are true from step 7's output:
-   - `on_modified_lines`
-   - `verified_by_reading_file`
-   - `code_confirms_issue`
-   - `has_direct_evidence_quote`
-   - `pre_existing` is false
-   - `caught_by_tooling` is false
+8. **Filter deterministically.** Run `review-filter` on the scorer's output file. It applies the fixed decision table in code — do not re-evaluate the flags yourself. If the result is an empty array, stop.
 
-   AND at least one of:
-   - `practical_impact == "high"`
-   - `claude_md_relevance == "explicit"`
+9. **Build links.** For each surviving issue, run `review-link --sha <head_sha> --file <path> --start <line> --end <line>` to get its permalink. Provide at least 1 line of context before and after the flagged line in `--start`/`--end` (e.g. flagging lines 5–6 → `--start 4 --end 7`).
 
-   Discard everything else. If nothing survives, stop.
+10. **Write the review body.** Compose the comment using the format below. This is the one part of output construction that still needs judgement (clear, brief descriptions; correct citations) so it isn't scripted. Save it to a file.
 
-9. **Re-check eligibility (bash only, no agent).** Repeat the closed/draft/already-reviewed check from step 1 against the current `headRefOid`, in case state changed mid-run. If no longer eligible, stop without posting.
+11. **Re-check eligibility.** Run `review-context <number>` again in case state changed mid-run. If no longer eligible, stop without posting.
 
-10. **Post the review.** Use `gh pr review <number> --comment -b "<body>"`, tied to the current head commit. Keep the body brief, no emojis, and cite/link relevant code, files, and URLs.
+12. **Post the review.** Run `review-post <number> <body-file>`.
 
 Notes:
 
-- Use `gh` to interact with GitHub rather than web fetch.
+- Use `gh` (via the scripts, or `gh pr diff` directly for the agents) rather than web fetch.
 - Make a todo list first.
 - You must cite and link each issue (e.g. if referring to a CLAUDE.md, link it).
 - For your final comment, follow this format precisely (example with 3 issues):
@@ -62,15 +59,15 @@ Found 3 issues:
 
 1. <brief description of bug> (CLAUDE.md says "<...>")
 
-<link to file and line with full sha1 + line range for context, note that you MUST provide the full sha and not use bash here, eg. https://github.com/anthropics/claude-code/blob/1d54823877c4de72b2316a64032a54afc404e619/README.md#L13-L17>
+<link from review-link>
 
 2. <brief description of bug> (some/other/CLAUDE.md says "<...>")
 
-<link to file and line with full sha1 + line range for context>
+<link from review-link>
 
 3. <brief description of bug> (bug due to <file and code snippet>)
 
-<link to file and line with full sha1 + line range for context>
+<link from review-link>
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
@@ -89,10 +86,3 @@ No issues found. Checked for bugs, security, and CLAUDE.md compliance.
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 ---
-
-- When linking to code, follow this format precisely, otherwise the Markdown preview won't render correctly: `https://github.com/anthropics/claude-cli-internal/blob/c21d3c10bc8e898b7ac1a2d745bdc9bc4e423afe/package.json#L10-L15`
-  - Requires the full git sha — commands like `$(git rev-parse HEAD)` interpolated into the link will not work, since your comment is rendered directly as Markdown.
-  - Repo name must match the repo you're reviewing.
-  - `#` sign after the file name.
-  - Line range format is `L[start]-L[end]`.
-  - Provide at least 1 line of context before and after, centered on the flagged line (e.g. commenting on lines 5–6 → link to `L4-7`).

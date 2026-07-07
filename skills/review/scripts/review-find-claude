@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+"""review-find-claude FILE [FILE ...]
+
+Finds all CLAUDE.md files relevant to the given changed files: the repo
+root CLAUDE.md (if present) plus any directory-level CLAUDE.md found by
+walking up from each file's directory to the repo root. Prints one
+repo-relative path per line, deduplicated.
+
+No judgement involved -- this is a fixed directory-walk algorithm, not a
+decision that changes over time.
+"""
+import os
+import subprocess
+import sys
+
+
+def repo_root():
+    out = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True
+    )
+    if out.returncode != 0:
+        print(out.stderr.strip(), file=sys.stderr)
+        sys.exit(1)
+    return out.stdout.strip()
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("usage: review-find-claude FILE [FILE ...]", file=sys.stderr)
+        sys.exit(2)
+
+    root = repo_root()
+    found = []
+
+    root_claude = os.path.join(root, "CLAUDE.md")
+    if os.path.isfile(root_claude):
+        found.append("CLAUDE.md")
+
+    for f in sys.argv[1:]:
+        d = os.path.dirname(os.path.join(root, f))
+        while True:
+            candidate = os.path.join(d, "CLAUDE.md")
+            rel = os.path.relpath(candidate, root)
+            if os.path.isfile(candidate) and rel not in found:
+                found.append(rel)
+            if os.path.abspath(d) == os.path.abspath(root):
+                break
+            parent = os.path.dirname(d)
+            if parent == d:
+                break
+            d = parent
+
+    for path in found:
+        print(path)
+
+
+if __name__ == "__main__":
+    main()

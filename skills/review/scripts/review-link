@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""review-link --sha SHA --file PATH --start N [--end N]
+
+Prints a GitHub permalink URL in the exact format GitHub's Markdown
+renderer expects: full SHA, #L<start>-L<end>. --end defaults to --start.
+
+There is only one correct URL format, so this is scripted rather than
+re-explained in the prompt every run.
+"""
+import argparse
+import subprocess
+import sys
+
+
+def repo_name_with_owner():
+    out = subprocess.run(
+        ["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"],
+        capture_output=True, text=True,
+    )
+    if out.returncode != 0:
+        print(out.stderr.strip(), file=sys.stderr)
+        sys.exit(1)
+    return out.stdout.strip()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sha", required=True)
+    parser.add_argument("--file", required=True)
+    parser.add_argument("--start", required=True, type=int)
+    parser.add_argument("--end", type=int)
+    args = parser.parse_args()
+
+    end = args.end or args.start
+    repo = repo_name_with_owner()
+    print(f"https://github.com/{repo}/blob/{args.sha}/{args.file}#L{args.start}-L{end}")
+
+
+if __name__ == "__main__":
+    main()

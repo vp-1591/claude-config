@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""review-context PR_NUMBER
+
+Gathers PR eligibility info deterministically and prints JSON to stdout:
+
+  {
+    "eligible": bool,
+    "reason": "closed" | "draft" | "already_reviewed_at_head_sha" | null,
+    "head_sha": "...",
+    "author": "...",
+    "files": ["src/foo.ts", "src/bar.ts"]
+  }
+
+No judgement involved -- this replaces the "run gh pr view, run gh api,
+check draft/closed/already-reviewed" plumbing that used to live in the
+skill prompt.
+"""
+import json
+import subprocess
+import sys
+
+
+def run(cmd):
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(json.dumps({"error": result.stderr.strip()}), file=sys.stderr)
+        sys.exit(1)
+    return result.stdout
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("usage: review-context PR_NUMBER", file=sys.stderr)
+        sys.exit(2)
+    pr_number = sys.argv[1]
+
+    pr = json.loads(
+        run([
+            "gh", "pr", "view", pr_number, "--json",
+            "state,isDraft,headRefOid,author,files,number",
+        ])
+    )
+    repo = run(["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).strip()
+    me = run(["gh", "api", "user", "--jq", ".login"]).strip()
+    reviews = json.loads(run(["gh", "api", f"repos/{repo}/pulls/{pr_number}/reviews"]))
+
+    head_sha = pr["headRefOid"]
+    already_reviewed = any(
+        r.get("user", {}).get("login") == me and r.get("commit_id") == head_sha
+        for r in reviews
+    )
+
+    reason = None
+    if pr["state"] == "CLOSED":
+        reason = "closed"
+    elif pr["isDraft"]:
+        reason = "draft"
+    elif already_reviewed:
+        reason = "already_reviewed_at_head_sha"
+
+    output = {
+        "eligible": reason is None,
+        "reason": reason,
+        "head_sha": head_sha,
+        "author": pr["author"]["login"],
+        "files": [f["path"] for f in pr["files"]],
+    }
+    print(json.dumps(output, indent=2))
+
+
+if __name__ == "__main__":
+    main()
