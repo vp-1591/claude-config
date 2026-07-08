@@ -24,6 +24,7 @@ Return a JSON array, one object per issue, with exactly these fields:
   {
     "id": "<issue id as given>",
     "on_modified_lines": <bool>,
+    "requires_on_modified_lines": <bool>,
     "pre_existing": <bool>,
     "caught_by_tooling": <bool>,
     "verified_by_reading_file": <bool>,
@@ -39,6 +40,7 @@ Respond with ONLY the JSON array. No markdown fences, no preamble, no text befor
 
 Field definitions:
 - `on_modified_lines`: true only if the flagged issue sits on a line this PR's diff actually changed — not merely adjacent or pre-existing context that happens to be in the diff view.
+- `requires_on_modified_lines`: true for findings that point to a specific line of code that the PR changed (bugs, security flaws, style violations). Set to false for diff-agnostic findings about something absent — e.g., missing ADR, missing test file, process/compliance gap. These issues cannot sit on a modified line because they are about what should exist but doesn't. Default is true; only set false when the nature of the issue makes on_modified_lines inapplicable.
 - `pre_existing`: true if the issue existed before this PR and was neither introduced nor touched by it.
 - `caught_by_tooling`: true if a linter, typechecker, compiler, or test runner would catch this automatically in CI (missing/incorrect imports, type errors, formatting, broken tests).
 - `verified_by_reading_file`: true only if you actually opened and read the file at the given path/lines — not inferred from the diff or description alone.

@@ -15,8 +15,10 @@ import sys
 
 
 def keep(issue):
+    requires_lines = issue.get("requires_on_modified_lines", True)
+    on_lines = issue.get("on_modified_lines") is True
     return (
-        issue.get("on_modified_lines") is True
+        (not requires_lines or on_lines)
         and issue.get("verified_by_reading_file") is True
         and issue.get("code_confirms_issue") is True
         and issue.get("has_direct_evidence_quote") is True
