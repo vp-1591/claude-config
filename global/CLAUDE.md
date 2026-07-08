@@ -22,8 +22,8 @@ Commit messages must include a bullet list with detailed changes in the commit b
 - Wait for all CI checks to pass before merging.
 - Do not squash-merge PRs. Use regular merge with branch deletion so that branch list stays clean (`gh pr merge --merge --delete-branch`) to preserve the full commit history.
 
-## Stuck? Search, don't guess
+## Search on repeat failures
 
 After **2 failed attempts** at the same fix, stop guessing — `WebSearch` the error message, then `WebFetch` relevant results. Only apply fixes backed by what you find.
 
-"Same fix" = same error message/tokens, same file/function/test, or same error category (e.g. 3rd `TypeError`). A **new error** after a successful fix resets the budget.
+"Same fix" = still trying to achieve the same goal (get X deployed, make test Y pass). The error changing between attempts doesn't reset the budget — you're still stuck. Only a **successful fix followed by a genuinely new problem** resets it.
