@@ -24,27 +24,6 @@ Commit messages must include a bullet list with detailed changes in the commit b
 
 ## Stuck? Search, don't guess
 
-After **two failed attempts** at fixing the same problem, stop guessing and
-switch to evidence-based debugging:
+After **2 failed attempts** at the same fix, stop guessing — `WebSearch` the error message, then `WebFetch` relevant results. Only apply fixes backed by what you find.
 
-1. **Web search** the exact error message (or its most distinctive parts)
-   using `WebSearch`.
-2. If results are unclear, **fetch and read** the most relevant pages with
-   `WebFetch`.
-3. Only apply fixes **directly supported by search results** or official docs.
-
-### What counts as "same problem"
-- The error message is the same or shares distinctive tokens with a previous
-  attempt's error.
-- You're still editing the same file, function, or failing test.
-- The error category repeats (e.g. third `TypeError`, third missing import,
-  third test asserting the same thing).
-
-### What does NOT count
-- A **genuinely new error** that appeared after a fix landed — that gets its
-  own two-attempt budget. "Fix A → new error B" is progress, not a loop.
-- Exploring different solutions to a **design question** where there is no
-  error to search for — use your judgment there.
-
-The point is: if you catch yourself reaching for "maybe this will work" without
-new information, you've used your budget. Go search.
+"Same fix" = same error message/tokens, same file/function/test, or same error category (e.g. 3rd `TypeError`). A **new error** after a successful fix resets the budget.
