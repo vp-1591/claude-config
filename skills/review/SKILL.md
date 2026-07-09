@@ -12,37 +12,44 @@ invoked with that prefix — no PATH setup required. They handle everything
 that has exactly one correct way to do it, so no tokens are spent
 explaining plumbing.
 
+All intermediate files go in the project-level `.claude/_review-artifacts/`
+directory (relative to the repo root, not `~/.claude/`) — never scatter them
+across temp directories. The directory is created in step 2 and reused
+throughout. File paths are fixed, not chosen ad hoc.
+
 To do this, follow these steps precisely:
 
 1. **Gather context.** Run `${CLAUDE_SKILL_DIR}/scripts/review-context <number>` and parse its JSON output. If `"eligible"` is `false`, stop — do not proceed. Keep `head_sha`, `author`, and `files` from this output for later steps; do not re-fetch them.
 
-2. **Obvious-noise pre-filter.** Using the `files` list from step 1, stop without invoking any agent if either is true:
+2. **Prepare artifact directory.** Run `mkdir -p .claude/_review-artifacts` (project-level, not `~/.claude/`). All intermediate files from this pipeline go here.
+
+3. **Obvious-noise pre-filter.** Using the `files` list from step 1, stop without invoking any agent if either is true:
    - Every changed file matches a lockfile/generated-file pattern (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `*.snap`, `go.sum`, and similar).
    - `author` is a known bot account (e.g. `dependabot[bot]`, `renovate[bot]`).
 
-3. **Single Haiku agent call — triviality + summary.** Give the agent the PR diff (`gh pr diff <number>`) and ask it to return only this JSON:
+4. **Single Haiku agent call — triviality + summary.** Give the agent the PR diff (`gh pr diff <number>`) and ask it to return only this JSON:
    ```json
    {"proceed": <bool>, "summary": "<1-3 sentence summary of the change>"}
    ```
    `proceed` is `false` if the PR is trivial, automated, or obviously fine and needs no human-facing review. This judgement isn't scripted — the definition of "trivial" shifts over time and needs a model, not a fixed rule. If `proceed` is `false`, stop.
 
-4. **Discover CLAUDE.md paths.** Run `${CLAUDE_SKILL_DIR}/scripts/review-find-claude` with the `files` list from step 1 as arguments. Use its output (one path per line) in the next step.
+5. **Discover CLAUDE.md paths.** Run `${CLAUDE_SKILL_DIR}/scripts/review-find-claude` with the `files` list from step 1 as arguments. Use its output (one path per line) in the next step.
 
-5. **Parallel Sonnet subagents.** Launch the `review-bug-scanner` and `review-security` subagents in parallel. Give each the PR number, `head_sha`, and the CLAUDE.md paths from step 4. Each independently returns a list of issues (file/line, description, reason flagged). This is reasoning work and stays with the agents.
+6. **Parallel Sonnet subagents.** Launch the `review-bug-scanner` and `review-security` subagents in parallel. Give each the PR number, `head_sha`, and the CLAUDE.md paths from step 5. Each independently returns a list of issues (file/line, description, reason flagged). This is reasoning work and stays with the agents.
 
-6. If neither agent returned any issues, stop.
+7. If neither agent returned any issues, stop.
 
-7. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 5 in a single request (never one call per issue). It returns evidence flags per issue — this also stays with a model, since verifying "does this code actually prove the issue" requires reading and judgement. Save its JSON output to a file.
+8. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 6 in a single request (never one call per issue). It returns evidence flags per issue — this also stays with a model, since verifying "does this code actually prove the issue" requires reading and judgement. Save its JSON output to `.claude/_review-artifacts/scorer-output.json`.
 
-8. **Filter deterministically.** Run `${CLAUDE_SKILL_DIR}/scripts/review-filter` on the scorer's output file. It applies the fixed decision table in code — do not re-evaluate the flags yourself. If the result is an empty array, stop.
+9. **Filter deterministically.** Run `${CLAUDE_SKILL_DIR}/scripts/review-filter` on `.claude/_review-artifacts/scorer-output.json`. It applies the fixed decision table in code — do not re-evaluate the flags yourself. If the result is an empty array, stop.
 
-9. **Build links.** For each surviving issue, run `${CLAUDE_SKILL_DIR}/scripts/review-link --sha <head_sha> --file <path> --start <line> --end <line>` to get its permalink. Provide at least 1 line of context before and after the flagged line in `--start`/`--end` (e.g. flagging lines 5–6 → `--start 4 --end 7`).
+10. **Build links.** For each surviving issue, run `${CLAUDE_SKILL_DIR}/scripts/review-link --sha <head_sha> --file <path> --start <line> --end <line>` to get its permalink. Provide at least 1 line of context before and after the flagged line in `--start`/`--end` (e.g. flagging lines 5–6 → `--start 4 --end 7`).
 
-10. **Write the review body.** Compose the comment using the format below. This is the one part of output construction that still needs judgement (clear, brief descriptions; correct citations) so it isn't scripted. Save it to a file.
+11. **Write the review body.** Compose the comment using the format below. This is the one part of output construction that still needs judgement (clear, brief descriptions; correct citations) so it isn't scripted. Save it to `.claude/_review-artifacts/review-body.md`.
 
-11. **Re-check eligibility.** Run `${CLAUDE_SKILL_DIR}/scripts/review-context <number>` again in case state changed mid-run. If no longer eligible, stop without posting.
+12. **Re-check eligibility.** Run `${CLAUDE_SKILL_DIR}/scripts/review-context <number>` again in case state changed mid-run. If no longer eligible, stop without posting.
 
-12. **Post the review.** Run `${CLAUDE_SKILL_DIR}/scripts/review-post <number> <body-file>`.
+13. **Post the review.** Run `${CLAUDE_SKILL_DIR}/scripts/review-post <number> .claude/_review-artifacts/review-body.md`.
 
 Notes:
 
