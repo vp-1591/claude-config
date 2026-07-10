@@ -143,11 +143,11 @@ def main():
         run([
             "gh", "pr", "view", pr_number, "--json",
             "state,isDraft,headRefOid,author,files,number",
-        ])
+        ]).stdout
     )
-    repo = run(["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).strip()
-    me = run(["gh", "api", "user", "--jq", ".login"]).strip()
-    reviews = json.loads(run(["gh", "api", f"repos/{repo}/pulls/{pr_number}/reviews"]))
+    repo = run(["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).stdout.strip()
+    me = run(["gh", "api", "user", "--jq", ".login"]).stdout.strip()
+    reviews = json.loads(run(["gh", "api", f"repos/{repo}/pulls/{pr_number}/reviews"]).stdout)
 
     head_sha = pr["headRefOid"]
     already_reviewed = any(
