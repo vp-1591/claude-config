@@ -1,31 +1,136 @@
 #!/usr/bin/env python
 """review-context PR_NUMBER
 
-Gathers PR eligibility info deterministically and prints JSON to stdout:
+Gathers PR eligibility info, checks out the PR's head commit so local
+file reads match the diff, and prints JSON to stdout:
 
   {
     "eligible": bool,
     "reason": "closed" | "draft" | "already_reviewed_at_head_sha" | null,
     "head_sha": "...",
     "author": "...",
-    "files": ["src/foo.ts", "src/bar.ts"]
+    "files": ["src/foo.ts", "src/bar.ts"],
+    "branch_switch": {
+      "switched": true,
+      "original_branch": "main",
+      "original_sha": "abc123...",
+      "stashed": false
+    } | null
   }
 
-No judgement involved -- this replaces the "run gh pr view, run gh api,
-check draft/closed/already-reviewed" plumbing that used to live in the
-skill prompt.
+The branch_switch field is present when the working tree was switched to
+the PR's head commit. It is null when already on that commit (no switch
+needed) or when the checkout failed (degraded mode: review continues
+but local file reads may not match the diff).
+
+Original branch info is saved to .claude/_review-artifacts/checkout-state.json
+for optional manual restore after the review.
 """
 import json
+import os
 import subprocess
 import sys
 
 
-def run(cmd):
+def run(cmd, check=True):
     result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(json.dumps({"error": result.stderr.strip()}), file=sys.stderr)
-        sys.exit(1)
-    return result.stdout
+    if check and result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or f"Command failed: {' '.join(cmd)}")
+    return result
+
+
+def save_checkout_state(state):
+    root = run(["git", "rev-parse", "--show-toplevel"]).stdout.strip()
+    artifacts_dir = os.path.join(root, ".claude", "_review-artifacts")
+    os.makedirs(artifacts_dir, exist_ok=True)
+    path = os.path.join(artifacts_dir, "checkout-state.json")
+    with open(path, "w") as f:
+        json.dump(state, f, indent=2)
+
+
+def checkout_pr(pr_number, head_sha):
+    """Check out the PR's head commit. Returns a branch_switch dict or None.
+
+    Skips checkout if .claude/_review-artifacts/checkout-state.json already
+    exists (the branch was already switched by an earlier call in this
+    review run).
+    """
+    # If we already switched branches in this review run, don't switch again
+    root = run(["git", "rev-parse", "--show-toplevel"]).stdout.strip()
+    state_path = os.path.join(root, ".claude", "_review-artifacts", "checkout-state.json")
+    if os.path.isfile(state_path):
+        with open(state_path) as f:
+            existing = json.load(f)
+        return {
+            "switched": existing.get("switched", True),
+            "original_branch": existing.get("original_ref", ""),
+            "original_sha": existing.get("original_sha", ""),
+            "stashed": existing.get("stashed", False),
+            "resumed": True,  # signals this is from a prior checkout, not a new one
+        }
+
+    # Capture current state
+    original_sha = run(["git", "rev-parse", "HEAD"]).stdout.strip()
+    try:
+        original_ref = run(["git", "symbolic-ref", "--short", "HEAD"]).stdout.strip()
+    except RuntimeError:
+        original_ref = original_sha  # detached HEAD
+
+    # Already on the PR's head commit — no switch needed
+    if original_sha == head_sha:
+        return None
+
+    # Stash dirty working tree if needed
+    dirty = run(["git", "diff", "--quiet"], check=False).returncode != 0
+    dirty |= run(["git", "diff", "--cached", "--quiet"], check=False).returncode != 0
+    stashed = False
+    if dirty:
+        try:
+            run(["git", "stash", "push", "-m", "review-checkout-auto-stash"])
+            stashed = True
+        except RuntimeError:
+            pass  # Stash failed; try checkout anyway
+
+    # Fetch and checkout the PR's head commit
+    try:
+        run(["git", "fetch", "origin", f"pull/{pr_number}/head"])
+        run(["git", "checkout", head_sha])
+    except RuntimeError as e:
+        # Checkout failed: undo stash if we made one, return degraded mode
+        if stashed:
+            try:
+                run(["git", "stash", "pop"])
+            except RuntimeError:
+                pass
+        # Save state for manual restore (original branch, no checkout happened)
+        save_checkout_state({
+            "original_ref": original_ref,
+            "original_sha": original_sha,
+            "switched": False,
+            "error": f"Checkout failed: {e}",
+        })
+        return {
+            "switched": False,
+            "original_branch": original_ref,
+            "original_sha": original_sha,
+            "stashed": False,
+            "error": f"Checkout failed — local files may not match the PR diff",
+        }
+
+    # Success
+    state = {
+        "original_ref": original_ref,
+        "original_sha": original_sha,
+        "switched": True,
+        "stashed": stashed,
+    }
+    save_checkout_state(state)
+    return {
+        "switched": True,
+        "original_branch": original_ref,
+        "original_sha": original_sha,
+        "stashed": stashed,
+    }
 
 
 def main():
@@ -58,12 +163,18 @@ def main():
     elif already_reviewed:
         reason = "already_reviewed_at_head_sha"
 
+    # Check out the PR's head commit (no-op if already on it)
+    branch_switch = None
+    if reason is None:  # only switch when eligible
+        branch_switch = checkout_pr(pr_number, head_sha)
+
     output = {
         "eligible": reason is None,
         "reason": reason,
         "head_sha": head_sha,
         "author": pr["author"]["login"],
         "files": [f["path"] for f in pr["files"]],
+        "branch_switch": branch_switch,
     }
     print(json.dumps(output, indent=2))
 

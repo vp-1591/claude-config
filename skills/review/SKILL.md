@@ -19,7 +19,7 @@ throughout. File paths are fixed, not chosen ad hoc.
 
 To do this, follow these steps precisely:
 
-1. **Gather context.** Run `${CLAUDE_SKILL_DIR}/scripts/review-context <number>` and parse its JSON output. If `"eligible"` is `false`, stop — do not proceed. Keep `head_sha`, `author`, and `files` from this output for later steps; do not re-fetch them.
+1. **Gather context and checkout PR branch.** Run `${CLAUDE_SKILL_DIR}/scripts/review-context <number>` and parse its JSON output. If `"eligible"` is `false`, stop — do not proceed. Keep `head_sha`, `author`, and `files` from this output for later steps; do not re-fetch them. The script also checks out the PR's head commit so local file reads match the diff. If `"branch_switch"` is present in the output, the working tree was switched — remember `"original_branch"` for the review comment. If `"branch_switch"` has `"switched": false`, local file reads may not match the PR diff (degraded mode); note this in the review comment.
 
 2. **Prepare artifact directory.** Run `mkdir -p .claude/_review-artifacts` (project-level, not `~/.claude/`). All intermediate files from this pipeline go here.
 
@@ -56,6 +56,7 @@ Notes:
 - Use `gh` (via the scripts, or `gh pr diff` directly for the agents) rather than web fetch. All scripts are invoked via `${CLAUDE_SKILL_DIR}/scripts/<name>` — no PATH setup needed.
 - Make a todo list first.
 - You must cite and link each issue (e.g. if referring to a CLAUDE.md, link it).
+- **Branch checkout:** `review-context` checks out the PR's head commit so subagents read the correct files. After the review, your working tree stays on that commit. The original branch is saved in `.claude/_review-artifacts/checkout-state.json`. If `branch_switch` was returned, append a line to the review comment: `> Switched to PR branch for review. Run \`git checkout <original_branch>\` to return.`
 - For your final comment, follow this format precisely (example with 3 issues):
 
 ---
@@ -80,6 +81,8 @@ Found 3 issues:
 
 <sub>- If this code review was useful, please react with 👍. Otherwise, react with 👎.</sub>
 
+> Switched to PR branch for review. Run `git checkout <original_branch>` to return.
+
 ---
 
 - Or, if you found no issues:
@@ -91,5 +94,7 @@ Found 3 issues:
 No issues found. Checked for bugs, security, and CLAUDE.md compliance.
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
+
+> Switched to PR branch for review. Run `git checkout <original_branch>` to return.
 
 ---
