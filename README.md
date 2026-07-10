@@ -1,6 +1,6 @@
 # claude-config
 
-Lightweight Claude Code harness for structured AI-assisted development. Similar in spirit to [BMAD](https://github.com/AI-Agent-Starter-Kit/BMad-Agentic-Framework) but optimized for smaller projects and lower token usage.
+Version control for my claude code files and lightweight Claude Code harness for structured AI-assisted development. Similar in spirit to [BMAD](https://github.com/BMAD-code-org/BMAD-METHOD) but optimized for smaller projects and lower token usage.
 
 ## Design philosophy
 
