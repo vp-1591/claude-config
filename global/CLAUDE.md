@@ -22,6 +22,9 @@ Commit messages must include a bullet list with detailed changes in the commit b
 - Wait for all CI checks to pass before merging.
 - Do not squash-merge PRs. Use regular merge with branch deletion so that branch list stays clean (`gh pr merge --merge --delete-branch`) to preserve the full commit history.
 
+## Secrets
+Do not print or read files or configs containing secrets without explicit permission.
+
 ## Search on repeat failures
 
 After **2 failed attempts** at the same fix, stop guessing — `WebSearch` the error message, then `WebFetch` relevant results. Only apply fixes backed by what you find.

@@ -1,18 +1,23 @@
 ---
 name: create-roadmap
-description: Create or update a roadmap document with clarify-first workflow
+description: Create a roadmap document with clarify-first workflow
 model: sonnet
 ---
 
-Create or update a roadmap document for this project. Roadmaps live in
+Create a roadmap document for this project. Roadmaps live in
 `docs/roadmap-<topic>.md` and use the template defined in
-`docs/roadmap-template.md`.
+`roadmap-template.md` (in this skill directory, or fallback at
+`docs/roadmap-template.md` in the project root).
+
+If the user wants to edit an existing roadmap, suggest using
+`/edit-roadmap` instead.
 
 ## Overview
 
 This skill follows a clarify-before-draft process: it first gathers context,
-then probes for ambiguities before writing anything. This reduces iteration
-cycles by resolving vagueness up front.
+then invites the user to share their thinking before asking targeted questions,
+and only then writes the document. This reduces iteration cycles by resolving
+vagueness up front.
 
 ## Process
 
@@ -21,18 +26,27 @@ cycles by resolving vagueness up front.
 Read these files in order:
 
 1. Relevant ADRs (per the ADR workflow).
-2. All existing roadmaps in `docs/roadmap-*.md`.
-3. The roadmap template: `docs/roadmap-template.md`.
+2. All existing roadmaps in `docs/roadmap-*.md` (for context on what already
+   exists — do not use them as a starting point for this new roadmap).
+3. The roadmap template: `roadmap-template.md` in this skill directory. If
+   not found, look for `docs/roadmap-template.md` in the project root.
 4. The project's `CLAUDE.md` for constraints and environment details.
 
-If the user specified a topic that already has a roadmap, this is an **update**
-operation — the existing roadmap is the starting point, not a blank template.
+### Step 2 — Open floor
 
-### Step 2 — Clarify ambiguities
+Before any structured questions, invite the user to share everything they have
+in mind: the goal, context, constraints, half-formed ideas, and anything that
+feels relevant. Adapt the invitation to what they already told you. Then ask
+one soft "anything else?" to surface what they almost forgot.
 
-Before writing, identify gaps in the user's request by checking each section
-of the roadmap template against what the user provided. For each gap, ask a
-targeted question. Use the categories below as a checklist:
+This dump replaces most downstream questioning — mine it for details before
+asking anything structured.
+
+### Step 3 — Clarify gaps
+
+After the open floor, identify remaining gaps by checking each section of the
+roadmap template against what the user provided. For each gap, ask a targeted
+question. Use the categories below as a checklist:
 
 **Goal:**
 - What specific outcome does this roadmap deliver?
@@ -54,40 +68,54 @@ targeted question. Use the categories below as a checklist:
 - What are the phases? What does each phase deliver?
 - For each phase, what is explicitly out of scope?
 
-Ask 3–5 questions maximum. Group related questions. Do not proceed to
-Step 3 until the user has answered or confirmed they want to skip a question.
+Ask 3–5 questions maximum. Group related questions. Skip questions the open
+floor already answered. Do not proceed to Step 4 until the user has answered
+or confirmed they want to skip a question.
 
-### Step 3 — Draft the roadmap
+### Step 4 — Draft the roadmap
 
 Draft the roadmap using the template exactly.
 Do not invent missing details. If required information is still unknown,
 insert `<!-- TODO: ... -->` rather than guessing.
 
-### Step 4 — Self-review
+### Step 5 — Self-review
 
 After drafting, review the roadmap against this checklist:
 
 1. **Goal is testable**: Can you verify the roadmap is done without asking
    the author?
 2. **Success criteria are specific**: No vague criteria like "works" or
-   "is reliable". Each one names what to check and how.
+   "is reliable". Each one names what to check and how. See the specificity
+   guide below.
 3. **Scope is bounded**: Every phase has an "Out of scope" section.
 4. **Alternatives are documented**: At least one rejected approach is listed,
    or the section explicitly says none were considered yet.
 5. **ADRs are linked**: Relevant decisions reference ADR numbers.
+6. **Mission test**: Could a generic assistant write this goal? If yes, it's
+   too vague — push for domain-specific language.
 
 Report any sections that fail the checklist. The user can accept the draft
 as-is or ask for revisions.
 
-### Step 5 — Write the file
+### Step 6 — Write the file
 
 Write the final roadmap to `docs/roadmap-<slug>.md` where `<slug>` is a
 short kebab-case topic name derived from the goal.
 
-If this is an update to an existing roadmap, write the updated content to the
-existing file path.
-
 Do not modify any other files. Do not create ADRs. Do not modify code.
+
+## Specificity guide
+
+Every success criterion must answer: **what failure does this prevent?**
+If you can't name the failure, the criterion is too vague.
+
+| Vague ❌ | Specific ✅ |
+|----------|------------|
+| "System works" | "All tests in `test/` pass, `make lint` is clean" |
+| "Is reliable" | "Handles 1000 req/s with p99 < 200ms" |
+| "Better UX" | "New user completes signup in < 2 minutes without help" |
+| "Easy to maintain" | "A new team member can deploy a change in < 1 hour" |
+| "Good performance" | "Page load time < 3s on 3G connection" |
 
 ## Notes
 
@@ -98,3 +126,4 @@ Do not modify any other files. Do not create ADRs. Do not modify code.
 - If the user asks to create a roadmap and an ADR for the same topic,
   suggest creating the roadmap first, then using plan mode to implement,
   then creating the ADR for decisions made during implementation.
+- To edit an existing roadmap, use `/edit-roadmap`.
