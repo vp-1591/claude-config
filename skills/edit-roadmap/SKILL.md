@@ -31,7 +31,8 @@ after every change.
 3. Read the roadmap template: `roadmap-template.md` in the `create-roadmap`
    skill directory. If not found, look for `docs/roadmap-template.md` in the
    project root.
-4. Read relevant ADRs and the project's `CLAUDE.md` for context.
+4. Read `docs/adr/README.md` (the ADR index) if it exists, otherwise
+   relevant ADRs directly, plus the project's `CLAUDE.md` for context.
 
 ### Step 2 — Understand what needs to change
 
@@ -87,7 +88,22 @@ as-is or ask for revisions.
 ### Step 5 — Write and summarize
 
 Write the updated roadmap to the same file path it was loaded from.
-Do not modify any other files. Do not create ADRs. Do not modify code.
+
+If `docs/roadmap-README.md` exists, update this roadmap's row:
+- Refresh the Title column if the title changed.
+- Update the Status column only if the user explicitly asked to change
+  the roadmap's status (e.g. marking it completed or superseded) — don't
+  infer status changes from phase edits on your own.
+- Add a short note in the Notes column only if the edit is significant
+  enough that a future reader scanning the index should know about it
+  (e.g. "scope narrowed", "phase 2 added"). Leave it as `—` for minor
+  edits.
+- Leave the Created date untouched.
+- If the index file doesn't exist, don't create it here — that's
+  `/create-roadmap`'s responsibility.
+
+Do not modify any other files or index rows. Do not create ADRs. Do not
+modify code.
 
 After writing, provide a change summary listing each section that changed
 and what changed in it. Example:
@@ -97,6 +113,7 @@ Changed sections:
 - Goal: tightened language from "improve reliability" to "p99 latency < 200ms"
 - Phase 2 scope: added "database migration script" to deliverables
 - Success criteria: replaced "works correctly" with "all integration tests pass"
+- Index: updated Status to "completed"
 ```
 
 ## Specificity guide

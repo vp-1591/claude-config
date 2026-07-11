@@ -26,8 +26,10 @@ vagueness up front.
 Read these files in order:
 
 1. Relevant ADRs (per the ADR workflow).
-2. All existing roadmaps in `docs/roadmap-*.md` (for context on what already
-   exists — do not use them as a starting point for this new roadmap).
+2. `docs/roadmap-README.md` if it exists (the roadmap index — for context
+   on what already exists); otherwise all existing roadmaps in
+   `docs/roadmap-*.md`. Do not use prior roadmaps as a starting point for
+   this new one.
 3. The roadmap template: `roadmap-template.md` in this skill directory. If
    not found, look for `docs/roadmap-template.md` in the project root.
 4. The project's `CLAUDE.md` for constraints and environment details.
@@ -102,7 +104,19 @@ as-is or ask for revisions.
 Write the final roadmap to `docs/roadmap-<slug>.md` where `<slug>` is a
 short kebab-case topic name derived from the goal.
 
-Do not modify any other files. Do not create ADRs. Do not modify code.
+Then update the roadmap index at `docs/roadmap-README.md`:
+- If the index file doesn't exist yet, create it with an `## Index`
+  header and table:
+  ```markdown
+  ## Index
+
+  | Slug | Title | Created | Status | Notes |
+  |------|-------|---------|--------|-------|
+  ```
+- Append one row: `| <slug> | <Title> | YYYY-MM-DD | active | — |` using
+  today's date and the roadmap's title.
+
+Do not modify any other rows. Do not create ADRs. Do not modify code.
 
 ## Specificity guide
 
