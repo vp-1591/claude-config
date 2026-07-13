@@ -58,7 +58,7 @@ Notes:
 - Use `gh` (via the scripts, or `gh pr diff` directly for the agents) rather than web fetch. All scripts are invoked via `${CLAUDE_SKILL_DIR}/scripts/<name>` — no PATH setup needed.
 - Make a todo list first.
 - You must cite and link each issue (e.g. if referring to a CLAUDE.md, link it).
-- **Branch checkout:** `review-context` checks out the PR's head commit so subagents read the correct files. After the review, your working tree stays on that commit. The original branch is saved in `.claude/_review-artifacts/checkout-state.json`. If `branch_switch` was returned, append a line to the review comment: `> Switched to PR branch for review. Run \`git checkout <original_branch>\` to return.`
+- **Branch checkout:** `review-context` checks out the PR's head commit so subagents read the correct files. After the review, your working tree stays on that commit. The original branch is saved in `.claude/_review-artifacts/checkout-state-<number>.json` (keyed by PR number, so a leftover file from a different PR's review is never mistaken for this run's state). If `branch_switch` was returned, append a line to the review comment: `> Switched to PR branch for review. Run \`git checkout <original_branch>\` to return.`
 - For your final comment, follow this format precisely (example with 3 issues):
 
 ---

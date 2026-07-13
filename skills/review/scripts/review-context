@@ -23,8 +23,11 @@ the PR's head commit. It is null when already on that commit (no switch
 needed) or when the checkout failed (degraded mode: review continues
 but local file reads may not match the diff).
 
-Original branch info is saved to .claude/_review-artifacts/checkout-state.json
-for optional manual restore after the review.
+Original branch info is saved to
+.claude/_review-artifacts/checkout-state-<PR_NUMBER>.json for optional
+manual restore after the review. The file is keyed by PR number so a
+leftover state file from a previous review run is never mistaken for the
+current one.
 """
 import json
 import os
@@ -39,11 +42,15 @@ def run(cmd, check=True):
     return result
 
 
-def save_checkout_state(state):
-    root = run(["git", "rev-parse", "--show-toplevel"]).stdout.strip()
+def checkout_state_path(root, pr_number):
     artifacts_dir = os.path.join(root, ".claude", "_review-artifacts")
-    os.makedirs(artifacts_dir, exist_ok=True)
-    path = os.path.join(artifacts_dir, "checkout-state.json")
+    return os.path.join(artifacts_dir, f"checkout-state-{pr_number}.json")
+
+
+def save_checkout_state(pr_number, state):
+    root = run(["git", "rev-parse", "--show-toplevel"]).stdout.strip()
+    path = checkout_state_path(root, pr_number)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(state, f, indent=2)
 
@@ -51,13 +58,15 @@ def save_checkout_state(state):
 def checkout_pr(pr_number, head_sha):
     """Check out the PR's head commit. Returns a branch_switch dict or None.
 
-    Skips checkout if .claude/_review-artifacts/checkout-state.json already
-    exists (the branch was already switched by an earlier call in this
-    review run).
+    Skips checkout if .claude/_review-artifacts/checkout-state-<pr>.json
+    already exists (the branch was already switched by an earlier call in
+    this review run for this same PR). The state file is keyed by PR
+    number so a leftover file from a different PR's review run is never
+    mistaken for this run's state.
     """
     # If we already switched branches in this review run, don't switch again
     root = run(["git", "rev-parse", "--show-toplevel"]).stdout.strip()
-    state_path = os.path.join(root, ".claude", "_review-artifacts", "checkout-state.json")
+    state_path = checkout_state_path(root, pr_number)
     if os.path.isfile(state_path):
         with open(state_path) as f:
             existing = json.load(f)
@@ -103,7 +112,7 @@ def checkout_pr(pr_number, head_sha):
             except RuntimeError:
                 pass
         # Save state for manual restore (original branch, no checkout happened)
-        save_checkout_state({
+        save_checkout_state(pr_number, {
             "original_ref": original_ref,
             "original_sha": original_sha,
             "switched": False,
@@ -124,7 +133,7 @@ def checkout_pr(pr_number, head_sha):
         "switched": True,
         "stashed": stashed,
     }
-    save_checkout_state(state)
+    save_checkout_state(pr_number, state)
     return {
         "switched": True,
         "original_branch": original_ref,
