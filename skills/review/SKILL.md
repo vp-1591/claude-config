@@ -27,7 +27,7 @@ To do this, follow these steps precisely:
    - Every changed file matches a lockfile/generated-file pattern (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `*.snap`, `go.sum`, and similar).
    - `author` is a known bot account (e.g. `dependabot[bot]`, `renovate[bot]`).
 
-4. **Single Haiku agent call — triviality + summary.** Give the agent the PR diff (`gh pr diff <number>`) and ask it to return only this JSON:
+4. **Single Haiku agent call — triviality + summary.**  Launch the review-triage subagent with the PR number. It returns:
    ```json
    {"proceed": <bool>, "summary": "<1-3 sentence summary of the change>"}
    ```
