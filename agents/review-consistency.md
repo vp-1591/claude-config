@@ -20,14 +20,14 @@ with `status: active` as an active ADR; ignore `superseded` rows entirely.
 If `docs/adr/README.md` doesn't exist, fall back to `Glob docs/adr/*.md` and
 read each file's own "Superseded by" marker instead.
 
-Read `docs/roadmap-README.md` (the roadmap index), table columns
+Read `docs/roadmaps/README.md` (the roadmap index), table columns
 `Slug | Title | Created | Status | Notes`. If it doesn't exist, fall back to
-`Glob docs/roadmap-*.md`.
+`Glob docs/roadmaps/*.md`.
 
 From `files`, determine:
 - `pr_touched_adrs`: entries whose path is under `docs/adr/` and appears in
   `files`.
-- `pr_touched_roadmaps`: entries matching `docs/roadmap-*.md` that appear in
+- `pr_touched_roadmaps`: entries matching `docs/roadmaps/*.md` that appear in
   `files`.
 
 ### Step 1 — New/edited doc vs. new/edited doc
