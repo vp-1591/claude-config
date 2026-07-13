@@ -26,7 +26,7 @@ after every change.
 ### Step 1 — Load the roadmap
 
 1. Ask the user which roadmap to edit (topic name or file path).
-2. Read the existing roadmap file from `docs/roadmap-<topic>.md`. If not found,
+2. Read the existing roadmap file from `docs/roadmaps/<topic>.md`. If not found,
    suggest using `/create-roadmap` to create one first, then stop.
 3. Read the roadmap template: `roadmap-template.md` in the `create-roadmap`
    skill directory. If not found, look for `docs/roadmap-template.md` in the
@@ -89,7 +89,7 @@ as-is or ask for revisions.
 
 Write the updated roadmap to the same file path it was loaded from.
 
-If `docs/roadmap-README.md` exists, update this roadmap's row:
+If `docs/roadmaps/README.md` exists, update this roadmap's row:
 - Refresh the Title column if the title changed.
 - Update the Status column only if the user explicitly asked to change
   the roadmap's status (e.g. marking it completed or superseded) — don't
