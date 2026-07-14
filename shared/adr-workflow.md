@@ -63,3 +63,20 @@ After making the change:
      `| YYYY | ... | superseded | XXXX |`
 4. Do not modify any other README rows or metadata.
 5. Do not perform orphan or drift detection.
+
+### Code comments referencing ADRs
+
+When a piece of code implements a non-obvious decision from an ADR — the
+correct behavior isn't inferable from reading the code alone, or this code
+reverses/replaces a prior approach — add a one-line comment at the decision
+point, in the language's native comment syntax:
+
+```
+# Decision: docs/adr/0012-....md
+```
+
+Do not add this for routine implementation of an ADR's decision where the
+code is self-explanatory.
+
+If the code references an ADR that's superseded, update the comment to point at
+the superseding ADR instead.
