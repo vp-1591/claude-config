@@ -1,6 +1,7 @@
 ---
 name: edit-roadmap
 description: Surgically edit an existing roadmap document
+allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/skills/create-roadmap/roadmap-template.md)
 model: sonnet
 ---
 

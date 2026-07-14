@@ -1,6 +1,7 @@
 ---
 name: create-roadmap
 description: Create a roadmap document with clarify-first workflow
+allowed-tools: Read(${CLAUDE_PLUGIN_ROOT}/skills/create-roadmap/roadmap-template.md)
 model: sonnet
 ---
 

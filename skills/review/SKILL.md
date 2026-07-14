@@ -1,6 +1,6 @@
 ---
 name: review
-allowed-tools: Bash
+allowed-tools: Bash, Agent, Read, TaskCreate, TaskUpdate
 description: Code review a pull request
 disable-model-invocation: false
 ---
