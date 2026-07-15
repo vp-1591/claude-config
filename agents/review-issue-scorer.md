@@ -1,7 +1,7 @@
 ---
 name: review-issue-scorer
 description: Verify code review issues via factual evidence flags (not confidence scores). Accepts a batch of issues in a single call. Returns a structured JSON array; the calling skill applies a fixed decision table.
-model: haiku
+model: sonnet
 tools: Read, Grep, Glob, Bash(gh issue view:*), Bash(gh pr diff:*), Bash(gh pr view:*)
 ---
 
