@@ -19,7 +19,7 @@ Commit messages must include a bullet list with detailed changes in the commit b
 - Run relevant tests before opening a PR.
 - Open a pull request:
   `gh pr create --fill`
-- Wait for all CI checks to pass before merging.
+- Do not merge without explicit request from user. When you are requested to merge, wait for all CI checks to pass before merging.
 - Do not squash-merge PRs. Use regular merge with branch deletion so that branch list stays clean (`gh pr merge --merge --delete-branch`) to preserve the full commit history.
 
 ## Secrets
