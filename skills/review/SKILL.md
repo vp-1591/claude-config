@@ -28,9 +28,9 @@ To do this, follow these steps precisely:
    - `author` is a known bot account (e.g. `dependabot[bot]`, `renovate[bot]`).
 
 4. **Single Haiku agent call — triviality + summary.**  Launch the review-triage subagent with the PR number. It returns:
-   ```json
+```json
    {"proceed": <bool>, "summary": "<1-3 sentence summary of the change>"}
-   ```
+```
    `proceed` is `false` if the PR is trivial, automated, or obviously fine and needs no human-facing review. This judgement isn't scripted — the definition of "trivial" shifts over time and needs a model, not a fixed rule. If `proceed` is `false`, stop.
 
 5. **Discover CLAUDE.md paths.** Run `${CLAUDE_SKILL_DIR}/scripts/review-find-claude` with the `files` list from step 1 as arguments. Use its output (one path per line) in the next step.
@@ -39,7 +39,7 @@ To do this, follow these steps precisely:
 
 7. If none of the three agents returned any issues, stop.
 
-8. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 6 in a single request (never one call per issue). It returns evidence flags per issue — this also stays with a model, since verifying "does this code actually prove the issue" requires reading and judgement. Save its JSON output to `.claude/_review-artifacts/scorer-output.json`.
+8. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 6 in a single request (never one call per issue), and pass it the output path `.claude/_review-artifacts/scorer-output.json`. It writes evidence flags per issue directly to that file — this also stays with a model, since verifying "does this code actually prove the issue" requires reading and judgement. You don't need to read or re-write its output yourself; confirm the file exists before continuing.
 
 9. **Filter deterministically.** Run `${CLAUDE_SKILL_DIR}/scripts/review-filter` on `.claude/_review-artifacts/scorer-output.json`. It applies the fixed decision table in code — do not re-evaluate the flags yourself. If the result is an empty array, stop.
 
