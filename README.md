@@ -7,7 +7,7 @@ Version control for my claude code files and lightweight Claude Code harness for
 The key insight: **not every step in an AI workflow needs AI judgment**. This repo draws explicit boundaries between what a model should decide and what a script should enforce:
 
 - **Deterministic boundaries** — steps like eligibility checks, issue filtering, and link building are scripted (`review-context`, `review-filter`, `review-link`). No tokens spent on decisions that have one right answer.
-- **Model selection per step** — Haiku for triviality checks, Sonnet for reasoning-heavy work like bug scanning. No step over-provisioned.
+- **Model selection per step** — Sonnet for reasoning-heavy work like bug scanning and security review, no heavier model than the step needs. No step over-provisioned.
 - **Parallel subagents** — bug scanning and security review run concurrently because they're independent. The pipeline waits only where steps depend on each other.
 - **Evidence flags over confidence scores** — the issue scorer returns verifiable boolean flags ("does the diff actually contain this pattern?"), not subjective confidence percentages. A fixed decision table then filters — no LLM needed for the final call.
 
@@ -17,7 +17,7 @@ The key insight: **not every step in an AI workflow needs AI judgment**. This re
 
 | Skill | Description |
 |-------|-------------|
-| `review` | Multi-step automated PR review: context gathering → triviality filter → parallel bug/security scan → batched scoring → deterministic filter → post |
+| `review` | Multi-step automated PR review: context gathering → obvious-noise pre-filter → parallel bug/security/consistency scan → batched scoring → deterministic filter → post |
 | `create-roadmap` | Clarify-first roadmap drafting — asks targeted questions before writing to reduce iteration cycles |
 | `junction` | Windows junction linking for skill directories into `~/.claude/skills/` |
 

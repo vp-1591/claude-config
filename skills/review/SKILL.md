@@ -27,31 +27,25 @@ To do this, follow these steps precisely:
    - Every changed file matches a lockfile/generated-file pattern (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `*.snap`, `go.sum`, and similar).
    - `author` is a known bot account (e.g. `dependabot[bot]`, `renovate[bot]`).
 
-4. **Single Haiku agent call — triviality + summary.**  Launch the review-triage subagent with the PR number. It returns:
-```json
-   {"proceed": <bool>, "summary": "<1-3 sentence summary of the change>"}
-```
-   `proceed` is `false` if the PR is trivial, automated, or obviously fine and needs no human-facing review. This judgement isn't scripted — the definition of "trivial" shifts over time and needs a model, not a fixed rule. If `proceed` is `false`, stop.
+4. **Discover CLAUDE.md paths.** Run `${CLAUDE_SKILL_DIR}/scripts/review-find-claude` with the `files` list from step 1 as arguments. Use its output (one path per line) in the next step.
 
-5. **Discover CLAUDE.md paths.** Run `${CLAUDE_SKILL_DIR}/scripts/review-find-claude` with the `files` list from step 1 as arguments. Use its output (one path per line) in the next step.
+5. **Parallel Sonnet subagents.** Launch the `review-bug-scanner`, `review-security`, and `review-consistency` subagents in parallel. Give `review-bug-scanner` and `review-security` the PR number, `head_sha`, and the CLAUDE.md paths from step 4, as before. Give `review-consistency` the PR number, `head_sha`, and the `files` list from step 1 — it reads `docs/adr/README.md` and `docs/roadmaps/README.md` itself to determine active ADRs/roadmaps and cross-reference them against `files`. Each subagent independently returns a list of issues (file/line, description, reason flagged). This is reasoning work and stays with the agents.
 
-6. **Parallel Sonnet subagents.** Launch the `review-bug-scanner`, `review-security`, and `review-consistency` subagents in parallel. Give `review-bug-scanner` and `review-security` the PR number, `head_sha`, and the CLAUDE.md paths from step 5, as before. Give `review-consistency` the PR number, `head_sha`, and the `files` list from step 1 — it reads `docs/adr/README.md` and `docs/roadmaps/README.md` itself to determine active ADRs/roadmaps and cross-reference them against `files`. Each subagent independently returns a list of issues (file/line, description, reason flagged). This is reasoning work and stays with the agents.
+6. If none of the three agents returned any issues, stop.
 
-7. If none of the three agents returned any issues, stop.
+7. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 5 in a single request (never one call per issue), and pass it the output path `.claude/_review-artifacts/scorer-output.json`. It writes evidence flags per issue directly to that file — this also stays with a model, since verifying "does this code actually prove the issue" requires reading and judgement. You don't need to read or re-write its output yourself; confirm the file exists before continuing.
 
-8. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 6 in a single request (never one call per issue), and pass it the output path `.claude/_review-artifacts/scorer-output.json`. It writes evidence flags per issue directly to that file — this also stays with a model, since verifying "does this code actually prove the issue" requires reading and judgement. You don't need to read or re-write its output yourself; confirm the file exists before continuing.
+8. **Filter deterministically.** Run `${CLAUDE_SKILL_DIR}/scripts/review-filter` on `.claude/_review-artifacts/scorer-output.json`. It applies the fixed decision table in code — do not re-evaluate the flags yourself. If the result is an empty array, stop.
 
-9. **Filter deterministically.** Run `${CLAUDE_SKILL_DIR}/scripts/review-filter` on `.claude/_review-artifacts/scorer-output.json`. It applies the fixed decision table in code — do not re-evaluate the flags yourself. If the result is an empty array, stop.
+9. **Build links.** For each surviving issue, run `${CLAUDE_SKILL_DIR}/scripts/review-link --sha <head_sha> --file <path> --start <line> --end <line>` to get its permalink. Provide at least 1 line of context before and after the flagged line in `--start`/`--end` (e.g. flagging lines 5–6 → `--start 4 --end 7`).
 
-10. **Build links.** For each surviving issue, run `${CLAUDE_SKILL_DIR}/scripts/review-link --sha <head_sha> --file <path> --start <line> --end <line>` to get its permalink. Provide at least 1 line of context before and after the flagged line in `--start`/`--end` (e.g. flagging lines 5–6 → `--start 4 --end 7`).
+10. **Write the review body.** Compose the comment using the format below. This is the one part of output construction that still needs judgement (clear, brief descriptions; correct citations) so it isn't scripted. Save it to `.claude/_review-artifacts/review-body.md`.
 
-11. **Write the review body.** Compose the comment using the format below. This is the one part of output construction that still needs judgement (clear, brief descriptions; correct citations) so it isn't scripted. Save it to `.claude/_review-artifacts/review-body.md`.
+11. **Handle diff-agnostic issues.** Some `review-consistency` issues are diff-agnostic (e.g. a missing ADR, or a conflict between two docs not tied to one line) and will have `line_start`/`line_end` as `null`. Skip `review-link` for these — there is no commit line to point to. In the review body, reference the doc path(s) directly instead (e.g. `docs/adr/0007-...md`) rather than fabricating a link.
 
-12. **Handle diff-agnostic issues.** Some `review-consistency` issues are diff-agnostic (e.g. a missing ADR, or a conflict between two docs not tied to one line) and will have `line_start`/`line_end` as `null`. Skip `review-link` for these — there is no commit line to point to. In the review body, reference the doc path(s) directly instead (e.g. `docs/adr/0007-...md`) rather than fabricating a link.
+12. **Re-check eligibility.** Run `${CLAUDE_SKILL_DIR}/scripts/review-context <number>` again in case state changed mid-run. If no longer eligible, stop without posting.
 
-13. **Re-check eligibility.** Run `${CLAUDE_SKILL_DIR}/scripts/review-context <number>` again in case state changed mid-run. If no longer eligible, stop without posting.
-
-14. **Post the review.** Run `${CLAUDE_SKILL_DIR}/scripts/review-post <number> .claude/_review-artifacts/review-body.md`.
+13. **Post the review.** Run `${CLAUDE_SKILL_DIR}/scripts/review-post <number> .claude/_review-artifacts/review-body.md`.
 
 Notes:
 
