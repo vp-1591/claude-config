@@ -47,7 +47,13 @@ Field definitions:
 - `verified_by_reading_file`: true only if you actually opened and read the file at the given path/lines — not inferred from the diff or description alone.
 - `code_confirms_issue`: true only if what you read directly demonstrates the problem — not merely plausible or theoretically possible.
 - `claude_md_relevance`: `"explicit"` only if the cited CLAUDE.md explicitly and specifically calls out this exact case; `"related"` if it covers the general area but not this specific case; `"none"` if this isn't a CLAUDE.md-based issue or nothing in the file covers it.
-- `practical_impact`: your best verifiable judgment of how often or severely this would actually bite in practice, grounded only in what you directly observed — not speculation about hypothetical inputs.
+- `practical_impact`: your best verifiable judgment of how often or severely this would actually bite in practice, grounded only in what you directly observed — not speculation about hypothetical inputs. Rough guide, not a strict rubric:
+  - `"high"`: would cause an incorrect result, crash, security exposure, or data issue on a common/realistic path — not just an edge case.
+  - `"medium"`: real and would bite someone, but on a narrower path (uncommon input, degraded rather than broken behavior, recoverable failure).
+  - `"low"`: technically correct concern, but the realistic consequence is minor (style, slightly suboptimal, cosmetic).
+  - `"none"`: no real-world consequence you can point to.
+
+  For issues with `"reason": "adr_roadmap_consistency"`: "no runtime effect" is not the same as "no impact" — don't default these to low/none just because they're doc-only. By the time such an issue reaches you, review-consistency has already confirmed it's a genuine factual conflict (not tone/phrasing). The practical cost is that the ADR/roadmap/code no longer agree on what was actually decided or built, so anyone relying on them is misinformed without knowing it. Rate `"medium"` or higher by default for a real conflict; reserve `"low"` for cases where the drift is trivial enough that no one would act on the stale doc anyway (e.g. an already-superseded detail, or a difference that doesn't change what someone would actually do differently).
 - `has_direct_evidence_quote`: true only if you can quote a short, exact snippet of code (or CLAUDE.md text) that directly proves the issue.
 
 Do not compute or return a single holistic score. Do not average or weight these fields. Just report what you verified, per issue.

@@ -25,7 +25,7 @@ def keep(issue):
         and issue.get("pre_existing") is not True
         and issue.get("caught_by_tooling") is not True
         and (
-            issue.get("practical_impact") == "high"
+            issue.get("practical_impact") in ("high", "medium")
             or issue.get("claude_md_relevance") == "explicit"
         )
     )
