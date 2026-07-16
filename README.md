@@ -19,6 +19,7 @@ The key insight: **not every step in an AI workflow needs AI judgment**. This re
 |-------|-------------|
 | `review` | Multi-step automated PR review: context gathering → obvious-noise pre-filter → parallel bug/security/consistency scan → batched scoring → deterministic filter → post |
 | `create-roadmap` | Clarify-first roadmap drafting — asks targeted questions before writing to reduce iteration cycles |
+| `edit-roadmap` | Surgically edit an existing roadmap, preserving structure and unchanged sections |
 | `junction` | Windows junction linking for skill directories into `~/.claude/skills/` |
 
 ### Agents
@@ -27,6 +28,7 @@ The key insight: **not every step in an AI workflow needs AI judgment**. This re
 |-------|-------------|
 | `review-bug-scanner` | Shallow-scan PR diffs for obvious bugs and CLAUDE.md compliance violations |
 | `review-security` | Scan PR diffs for security concerns — injection, auth issues, leaked secrets |
+| `review-consistency` | Check that a PR's code, ADRs, and roadmaps agree with each other and with pre-existing active scope |
 | `review-issue-scorer` | Batch-score review issues using evidence flags (not confidence scores) |
 
 ### Shared
@@ -34,6 +36,19 @@ The key insight: **not every step in an AI workflow needs AI judgment**. This re
 | Path | Description |
 |------|-------------|
 | `shared/adr-workflow.md` | Architecture Decision Record workflow guidelines |
+
+> **Dependency note:** `review-consistency` assumes the target repo has opted
+> into `shared/adr-workflow.md` (via `@~/.claude/shared/adr-workflow.md` in
+> that repo's own `CLAUDE.md`, as this repo does for itself). This is a
+> per-project opt-in, not a global default — without it, `docs/adr/` won't
+> exist and the "missing ADR" check in `review-consistency` Step 4 will flag
+> noise on every substantive PR.
+
+### Docs
+
+| Path | Description |
+|------|-------------|
+| `docs/adr/` | Project ADRs, indexed in `docs/adr/README.md` — read directly by `review-consistency` rather than discovered at runtime |
 
 ## Setup
 
