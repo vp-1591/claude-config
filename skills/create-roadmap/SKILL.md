@@ -76,13 +76,54 @@ Ask 3–5 questions maximum. Group related questions. Skip questions the open
 floor already answered. Do not proceed to Step 4 until the user has answered
 or confirmed they want to skip a question.
 
-### Step 4 — Draft the roadmap
+### Step 4 — Resolve ambiguities
+
+Scan everything the user has said so far (open floor, clarification answers)
+for ambiguity signals. Do not assume vague terms are precise. Name each
+ambiguity and ask the user to resolve it before continuing.
+
+**Ambiguity signals to look for:**
+
+| Signal | Example | Resolution pattern |
+|--------|---------|--------------------|
+| "or" / "and/or" in scope | "Add CI or deployment pipeline" | Name the fork, present as choices, ask which |
+| Vague quantifiers | "various", "some", "etc." | Ask for the specific complete list |
+| Conjoined independent goals | "Improve testing and add monitoring" | Split-or-keep decision |
+| Fuzzy adjectives | "better UX", "more reliable" | Ask for a specific, testable definition |
+| Overloaded terms | "user" meaning buyer, payer, or end-user | Name the ambiguity, ask for a precise choice |
+
+**For each ambiguity found:**
+
+1. Name it clearly: "I see an 'or' here — does this mean X, or Y?"
+2. When the options are clear, present them as choices rather than leaving it
+   open-ended.
+3. Record the resolution in the roadmap's Decision points section.
+4. Do not proceed to Step 5 until every ambiguity is resolved or the user
+   explicitly defers it (recorded as "deferred" with what's still open).
+
+**If no ambiguities are found**, say so briefly and move to Step 5.
+
+### Step 5 — Confirm understanding
+
+Before writing anything, synthesize what you understood into 2–3 sentences
+covering: the goal, what's in scope, and what success looks like.
+
+Present it naturally — do not prefix with "Acknowledging:", "Summarizing:", or
+"To confirm:". Use your own words, like a colleague who's really listening.
+
+Then ask: "Is that right? Am I missing anything?"
+
+- If the user confirms, proceed to Step 6.
+- If the user corrects or adds something, adjust your understanding and
+  reflect back again. Do not proceed until confirmed.
+
+### Step 6 — Draft the roadmap
 
 Draft the roadmap using the template exactly.
 Do not invent missing details. If required information is still unknown,
 insert `<!-- TODO: ... -->` rather than guessing.
 
-### Step 5 — Self-review
+### Step 7 — Self-review
 
 After drafting, review the roadmap against this checklist:
 
@@ -97,11 +138,14 @@ After drafting, review the roadmap against this checklist:
 5. **ADRs are linked**: Relevant decisions reference ADR numbers.
 6. **Mission test**: Could a generic assistant write this goal? If yes, it's
    too vague — push for domain-specific language.
+7. **Ambiguities resolved**: No unresolved "or", vague quantifiers, or fuzzy
+   adjectives remain in the draft. Any deferred decisions are recorded in
+   the Decision points section with what's still open.
 
 Report any sections that fail the checklist. The user can accept the draft
 as-is or ask for revisions.
 
-### Step 6 — Write the file
+### Step 8 — Write the file
 
 Determine the next available number by scanning existing roadmaps in
 `docs/roadmaps/`. If `0001-*.md` through `0003-*.md` exist, the next number
