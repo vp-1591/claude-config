@@ -26,8 +26,8 @@ after every change.
 
 ### Step 1 — Load the roadmap
 
-1. Ask the user which roadmap to edit (topic name or file path).
-2. Read the existing roadmap file from `docs/roadmaps/<topic>.md`. If not found,
+1. Ask the user which roadmap to edit (number, topic name, or file path).
+2. Read the existing roadmap file from `docs/roadmaps/<NNNN>-<topic>.md`. If not found,
    suggest using `/create-roadmap` to create one first, then stop.
 3. Read the roadmap template: `roadmap-template.md` in the `create-roadmap`
    skill directory. If not found, look for `docs/roadmap-template.md` in the
@@ -99,7 +99,7 @@ If `docs/roadmaps/README.md` exists, update this roadmap's row:
   enough that a future reader scanning the index should know about it
   (e.g. "scope narrowed", "phase 2 added"). Leave it as `—` for minor
   edits.
-- Leave the Created date untouched.
+- Leave the Created date and number untouched.
 - If the index file doesn't exist, don't create it here — that's
   `/create-roadmap`'s responsibility.
 
