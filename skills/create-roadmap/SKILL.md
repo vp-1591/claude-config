@@ -6,7 +6,8 @@ model: sonnet
 ---
 
 Create a roadmap document for this project. Roadmaps live in
-`docs/roadmaps/<topic>.md` and use the template defined in
+`docs/roadmaps/<NNNN>-<topic>.md` (four-digit zero-padded number prefix,
+e.g. `0001-ci-pipeline.md`) and use the template defined in
 `roadmap-template.md` (in this skill directory, or fallback at
 `docs/roadmap-template.md` in the project root).
 
@@ -102,8 +103,13 @@ as-is or ask for revisions.
 
 ### Step 6 — Write the file
 
-Write the final roadmap to `docs/roadmaps/<slug>.md` where `<slug>` is a
-short kebab-case topic name derived from the goal.
+Determine the next available number by scanning existing roadmaps in
+`docs/roadmaps/`. If `0001-*.md` through `0003-*.md` exist, the next number
+is `0004`. If the directory is empty, start at `0001`.
+
+Write the final roadmap to `docs/roadmaps/<NNNN>-<slug>.md` where `<NNNN>`
+is the zero-padded number and `<slug>` is a short kebab-case topic name
+derived from the goal.
 
 Then update the roadmap index at `docs/roadmaps/README.md`:
 - If the index file doesn't exist yet, create it with an `## Index`
@@ -111,11 +117,11 @@ Then update the roadmap index at `docs/roadmaps/README.md`:
   ```markdown
   ## Index
 
-  | Slug | Title | Created | Status | Notes |
-  |------|-------|---------|--------|-------|
+  | # | Title | Date | Status | Notes |
+  |---|-------|------|--------|-------|
   ```
-- Append one row: `| <slug> | <Title> | YYYY-MM-DD | active | — |` using
-  today's date and the roadmap's title.
+- Append one row: `| <NNNN> | <Title> | YYYY-MM-DD | active | — |` using
+  the roadmap's number, today's date, and the roadmap's title.
 
 Do not modify any other rows. Do not create ADRs. Do not modify code.
 
