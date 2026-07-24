@@ -54,7 +54,42 @@ same.
 Ask 3–5 questions maximum. Group related questions. Do not proceed to Step 3
 until the user has answered or confirmed they want to skip a question.
 
-### Step 3 — Edit surgically
+### Step 3 — Resolve ambiguities
+
+If the user's requested changes introduce or modify scope, success criteria, or
+any section where ambiguity could hide, scan the change description for
+ambiguity signals. Do not assume vague terms are precise. Name each ambiguity
+and ask the user to resolve it.
+
+**Ambiguity signals to look for:**
+
+| Signal | Example | Resolution pattern |
+|--------|---------|--------------------|
+| "or" / "and/or" in scope | "Add CI or deployment pipeline" | Name the fork, present as choices, ask which |
+| Vague quantifiers | "various", "some", "etc." | Ask for the specific complete list |
+| Conjoined independent goals | "Improve testing and add monitoring" | Split-or-keep decision |
+| Fuzzy adjectives | "better UX", "more reliable" | Ask for a specific, testable definition |
+| Overloaded terms | "user" meaning buyer, payer, or end-user | Name the ambiguity, ask for a precise choice |
+
+For each ambiguity found, name it clearly and present choices when the options
+are clear. Record resolutions in the roadmap's Decision points section (add
+rows to the existing table). Do not proceed until every ambiguity is resolved
+or explicitly deferred.
+
+If no ambiguities are found, say so briefly and move to Step 4.
+
+### Step 4 — Confirm understanding
+
+Before making edits, reflect back what you understood needs to change and what
+the result should look like — in your own words, naturally, without labels like
+"Summarizing:" or "To confirm:".
+
+Ask: "Is that right? Anything I'm missing?"
+
+- If confirmed, proceed to Step 5.
+- If corrected, adjust and reflect back again. Do not proceed until confirmed.
+
+### Step 5 — Edit surgically
 
 Rewrite only the affected sections. Preserve all unchanged sections verbatim —
 do not rephrase, reformat, or "improve" sections the user didn't ask to change.
@@ -65,7 +100,7 @@ For each edit:
 - If required information is still unknown after clarification, insert
   `<!-- TODO: ... -->` rather than guessing.
 
-### Step 4 — Self-review
+### Step 6 — Self-review
 
 After editing, review the updated roadmap against this checklist:
 
@@ -82,11 +117,14 @@ After editing, review the updated roadmap against this checklist:
    sections were accidentally removed or reordered.
 7. **Mission test**: Could a generic assistant write this goal? If yes, it's
    too vague — push for domain-specific language.
+8. **Ambiguities resolved**: No unresolved "or", vague quantifiers, or fuzzy
+   adjectives remain in the changed sections. Any deferred decisions are
+   recorded in the Decision points section with what's still open.
 
 Report any sections that fail the checklist. The user can accept the draft
 as-is or ask for revisions.
 
-### Step 5 — Write and summarize
+### Step 7 — Write and summarize
 
 Write the updated roadmap to the same file path it was loaded from.
 

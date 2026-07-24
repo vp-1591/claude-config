@@ -26,6 +26,15 @@ is too vague.
 | alternative 1 | one-line reason |
 | alternative 2 | one-line reason |
 
+## Decision points
+
+Choices resolved during clarification. Each entry records what was decided
+and why, so future readers understand the reasoning.
+
+| Decision | Options considered | Chosen | Why |
+|----------|-------------------|--------|-----|
+| example choice | A, B | A | one-line reason |
+
 ## Phases
 
 ### Phase 1 — [Title] *[status: planned]*
