@@ -80,3 +80,21 @@ code is self-explanatory.
 
 If the code references an ADR that's superseded, update the comment to point at
 the superseding ADR instead.
+
+## Roadmap lifecycle
+
+Roadmaps are forward-looking plans. ADRs are permanent decision records. When a
+roadmap's decisions have been implemented and recorded as ADRs, the roadmap has
+served its purpose.
+
+**Statuses:** `active` (in progress), `completed` (all success criteria met),
+`abandoned` (no longer pursuing).
+
+**Before deleting a roadmap**, verify every Decision point and Alternatives
+considered entry is covered by an ADR. If an ADR exists for each, delete the
+roadmap and remove its row from `docs/roadmaps/README.md`. If gaps remain,
+create the missing ADRs first.
+
+**When all success criteria are met**, mark the roadmap `completed` in the
+index (via `/edit-roadmap`) or delete it — do not leave completed roadmaps
+marked `active`.

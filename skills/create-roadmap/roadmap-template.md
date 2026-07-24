@@ -1,5 +1,10 @@
 # Roadmap <NNNN>: [Title]
 
+> **Status values for the index:** `active` (in progress), `completed` (all
+> success criteria met), `abandoned` (no longer pursuing). When all success
+> criteria are checked, update the status to `completed` or delete the roadmap
+> via `/edit-roadmap`.
+
 ## Goal
 
 One paragraph: what outcome this roadmap delivers and who it's for.
@@ -18,6 +23,8 @@ is too vague.
 
 - [ ] criterion 1
 - [ ] criterion 2
+<!-- When all criteria above are checked, update the roadmap status to
+     "completed" or delete the roadmap via /edit-roadmap. -->
 
 ## Alternatives considered
 
@@ -37,7 +44,7 @@ and why, so future readers understand the reasoning.
 
 ## Phases
 
-### Phase 1 — [Title] *[status: planned]*
+### Phase 1 — [Title] *[status: planned|in-progress|completed]*
 
 What this phase delivers, in one to three sentences.
 
@@ -54,7 +61,7 @@ What this phase delivers, in one to three sentences.
 
 ---
 
-### Phase 2 — [Title] *[status: planned]*
+### Phase 2 — [Title] *[status: planned|in-progress|completed]*
 
 What this phase delivers, in one to three sentences.
 
