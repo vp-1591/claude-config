@@ -8,7 +8,7 @@ import os
 import tempfile
 import unittest
 
-SCRIPT = os.path.join(os.path.dirname(__file__), "review-filter")
+SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "review-filter")
 
 # Minimal issue that passes all gates except the one under test.
 PASSING = {
@@ -28,7 +28,7 @@ PASSING = {
 def _load_keep():
     """Load the hyphenated review-filter script and return its keep function."""
     ns = {}
-    with open(os.path.join(os.path.dirname(__file__), "review-filter")) as f:
+    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "review-filter")) as f:
         exec(f.read(), ns)
     return ns["keep"]
 
