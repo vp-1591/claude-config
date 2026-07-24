@@ -29,7 +29,7 @@ To do this, follow these steps precisely:
 
 4. **Discover CLAUDE.md paths.** Run `${CLAUDE_SKILL_DIR}/scripts/review-find-claude` with the `files` list from step 1 as arguments. Use its output (one path per line) in the next step.
 
-5. **Parallel Sonnet subagents.** Launch the `review-bug-scanner`, `review-security`, and `review-consistency` subagents in parallel. Give `review-bug-scanner` and `review-security` the PR number, `head_sha`, and the CLAUDE.md paths from step 4, as before. Give `review-consistency` the PR number, `head_sha`, and the `files` list from step 1 — it reads `docs/adr/README.md` and `docs/roadmaps/README.md` itself to determine active ADRs/roadmaps and cross-reference them against `files`. Each subagent independently returns a list of issues (file/line, description, reason flagged). This is reasoning work and stays with the agents.
+5. **Parallel Sonnet subagents.** Launch the `review-bug-scanner`, `review-security`, and `review-consistency` subagents in parallel — call all three `Agent` tools in a single message with `run_in_background: false`, so the harness runs them concurrently and returns all results together. Give `review-bug-scanner` and `review-security` the PR number, `head_sha`, and the CLAUDE.md paths from step 4, as before. Give `review-consistency` the PR number, `head_sha`, and the `files` list from step 1 — it reads `docs/adr/README.md` and `docs/roadmaps/README.md` itself to determine active ADRs/roadmaps and cross-reference them against `files`. Each subagent independently returns a list of issues (file/line, description, reason flagged). This is reasoning work and stays with the agents.
 
 6. If none of the three agents returned any issues, stop.
 
