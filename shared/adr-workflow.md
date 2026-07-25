@@ -80,3 +80,13 @@ code is self-explanatory.
 
 If the code references an ADR that's superseded, update the comment to point at
 the superseding ADR instead.
+
+### Carrying decisions forward unchanged
+
+If a superseding ADR reaffirms part of a superseded ADR's decision without
+changing it, don't just say "unchanged" — name the origin, so the reasoning
+stays reachable even though the superseded ADR is normally skipped:
+
+- In the superseded ADR's marker: `> **Superseded by [ADR XXXX](./XXXX-filename.md)** — <reason>; <what carries forward unchanged>, see XXXX §Decision.`
+- In the superseding ADR's own Decision section: `<thing> remains unchanged (originally decided in ADR YYYY, §Decision).`
+- If XXXX is later superseded itself and still carries that same piece forward, keep the original ADR number in the note (e.g. "unchanged since 0095"), not just the immediate predecessor.
