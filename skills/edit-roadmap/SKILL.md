@@ -132,7 +132,12 @@ If `docs/roadmaps/README.md` exists, update this roadmap's row:
 - Refresh the Title column if the title changed.
 - Update the Status column only if the user explicitly asked to change
   the roadmap's status (e.g. marking it completed or superseded) — don't
-  infer status changes from phase edits on your own.
+  infer status changes from phase edits on your own. If the roadmap's
+  success criteria are all checked (`- [x]` on every criterion) and the
+  status is still `active`, mention this in the change summary:
+  "Note: all success criteria are met but status is still active. Consider
+  updating status to `completed` or deleting the roadmap." Do not change
+  the status yourself.
 - Add a short note in the Notes column only if the edit is significant
   enough that a future reader scanning the index should know about it
   (e.g. "scope narrowed", "phase 2 added"). Leave it as `—` for minor

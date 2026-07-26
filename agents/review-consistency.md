@@ -29,6 +29,11 @@ From `files`, determine:
   `files`.
 - `pr_touched_roadmaps`: entries matching `docs/roadmaps/*.md` that appear in
   `files`.
+- `pr_deleted_roadmaps`: entries matching `docs/roadmaps/*.md` that appear in
+  `files` as deletions. Use `gh pr diff <number>` to read their full content
+  from the diff (deleted files show their content with `-` prefixes). Strip
+  the leading `-` to recover the original roadmap text for analysis in later
+  steps.
 
 ### Step 1 — New/edited doc vs. new/edited doc
 Applies only if this PR touched both an ADR and a roadmap (both lists from
@@ -76,6 +81,22 @@ outside an in-progress roadmap phase's declared scope / hit something in its
   edit is substantive -- changes the recorded decision, not just a
   typo/formatting fix. If substantive, flag it as a process violation:
   decisions should be superseded, not rewritten in place.
+
+- **Roadmap decisions without ADRs:** For each roadmap in
+  `pr_touched_roadmaps` or `pr_deleted_roadmaps`, read its Decision points
+  table and Alternatives considered table. For every Decision point where
+  "Chosen" is filled in (not blank/TODO), and for every non-trivial
+  Alternative (skip "Do nothing" rejections), check whether any active ADR
+  covers that decision. An ADR "covers" a decision if its title or Context
+  names the same component/feature/architectural choice, or the roadmap's
+  Links section references that ADR number. Flag decisions with no covering
+  ADR. Skip roadmaps where all phases are still `*[status: planned]*`.
+  Report with `"reason": "adr_roadmap_consistency"`.
+
+- **Completed roadmaps still active:** For each active roadmap in scope (from
+  Step 0, excluding `pr_deleted_roadmaps`), if every success criterion
+  checkbox is `- [x]`, flag that the roadmap should be marked `completed` or
+  deleted. Report with `"reason": "adr_roadmap_consistency"`.
 
 Do not flag:
 - Differences in tone, structure, or emphasis between docs that don't
