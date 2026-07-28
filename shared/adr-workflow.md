@@ -1,8 +1,12 @@
 ## ADRs
-Before changing code in an area with existing ADRs, read `docs/adr/README.md`.
-Skip superseded entries for decision-making, but consult them if a current
-ADR cites one as "carried forward unchanged." To create, update, or supersede
-an ADR, use the manage-adr skill.
+Before changing code in an area with existing ADRs, read `docs/adr/README.md`
+directly (no skill needed for this — it's a plain file read). Skip superseded
+entries for decision-making, but consult them if a current ADR cites one as
+"carried forward unchanged."
+
+When planning a change, include "record ADR" as the final step of the plan —
+do not invoke the manage-adr skill during planning. Only invoke it after
+implementation is complete, to create/update/supersede the ADR.
 
 ## Roadmap lifecycle
 

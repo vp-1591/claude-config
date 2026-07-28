@@ -1,6 +1,6 @@
 ---
 name: manage-adr
-description: Create, update, or supersede Architecture Decision Records (ADRs) when making feature, fix, infrastructure, or behavior changes. Use when planning code changes in areas with existing ADRs, or after implementing a decision that should be recorded.
+description: Record a completed feature, fix, infrastructure, or behavior change as an ADR. Use only after implementation is done — this is the last step of a change, not a planning step. Do not use for reading existing ADRs; that's a plain file read against docs/adr/README.md.
 model: sonnet
 ---
 ## Architecture Decision Records (ADRs)
