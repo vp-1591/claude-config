@@ -30,3 +30,6 @@ Do not print or read files or configs containing secrets without explicit permis
 After **2 failed attempts** at the same fix, stop guessing — `WebSearch` the error message, then `WebFetch` relevant results. Only apply fixes backed by what you find.
 
 "Same fix" = still trying to achieve the same goal (get X deployed, make test Y pass). The error changing between attempts doesn't reset the budget — you're still stuck. Only a **successful fix followed by a genuinely new problem** resets it.
+
+## Subagents
+Always use TaskOutput awaiting tool to wait for subagents when you need their results
