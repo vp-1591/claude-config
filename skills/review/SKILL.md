@@ -33,7 +33,9 @@ To do this, follow these steps precisely:
 
 6. If none of the three agents returned any issues, stop.
 
-7. **Single batched scoring call.** Launch exactly one `review-issue-scorer` call with *all* issues from step 5 in a single request (never one call per issue), and pass it the output path `tmp/_review-artifacts/scorer-output.json`. It writes evidence flags per issue directly to that file — this also stays with a model, since verifying "does this code actually prove the issue" requires reading and judgement. You don't need to read or re-write its output yourself; confirm the file exists before continuing.
+7. **Per-issue scoring.** Launch one `review-issue-scorer` agent call *per issue* from step 5, all in a single message with `run_in_background: true` so they run concurrently. Each call receives exactly one issue (not the full list) plus the PR number, head SHA, and CLAUDE.md paths. Each agent writes its JSON object to `tmp/_review-artifacts/scorer-issue-<id>.json` — you don't need to read or re-write these files yourself. Give each agent the output path explicitly in its prompt.
+
+   After launching all scorers, use `TaskOutput` with `block: true` on each one to await completion. Then merge the per-issue JSON files into a single array: `python3 -c "import json, glob; print(json.dumps([json.load(open(f)) for f in sorted(glob.glob('tmp/_review-artifacts/scorer-issue-*.json'))], indent=2))" > tmp/_review-artifacts/scorer-output.json`. Confirm `scorer-output.json` exists before continuing.
 
 8. **Filter deterministically.** Run `${CLAUDE_SKILL_DIR}/scripts/review-filter` on `tmp/_review-artifacts/scorer-output.json`. It applies the fixed decision table in code — do not re-evaluate the flags yourself. If the result is an empty array, stop.
 
