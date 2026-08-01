@@ -6,7 +6,7 @@ command via Bash rather than attempting to read it directly:
     describe-image "path/to/image.png"
     describe-image "path/to/image.png" "specific question about the image"
 
-This calls a qwen3.5:397b:cloud and returns a text description you can reason about. Do not use the Read tool on images or files that may contain images(e.g. pdf) because that throws API Error: 400 this model does not support image input.
+This calls a qwen3.5:397b:cloud and returns a text description you can reason about. Do not use the Read tool on images or files that may contain images(e.g. pdf) because you can NOT process images. For pdf files you must write script in tmp/ folder that extracts text and images to read it's contents.
 
 ## Commits
 
