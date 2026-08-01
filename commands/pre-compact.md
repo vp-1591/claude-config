@@ -1,5 +1,11 @@
+---
+name: pre-compact
+description: >-
+  Write plan, plan status, problems, modified files, verification, blockers and next steps to PROGRESS.md before compacting
+disable-model-invocation: true
+---
 Before we compact context, write our current progress to `PROGRESS.md`
-in the project root (create it if it doesn't exist, overwrite if it does).
+in the project root (read and overwrite it if it exists, create if it doesn't).
 
 Include, in this structure:
 
