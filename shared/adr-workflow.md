@@ -5,8 +5,9 @@ entries for decision-making, but consult them if a current ADR cites one as
 "carried forward unchanged."
 
 When planning a change, include "record ADR" as the final step of the plan —
-do not invoke the manage-adr skill during planning. Only invoke it after
-implementation is complete, to create/update/supersede the ADR.
+do not invoke the manage-adr skill during planning. After implementation is
+complete, you MUST invoke the manage-adr skill to create, update, or supersede
+the ADR. Do not hand-write or copy-template an ADR file yourself.
 
 ## Roadmap lifecycle
 
