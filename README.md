@@ -20,6 +20,7 @@ The key insight: **not every step in an AI workflow needs AI judgment**. This re
 | `review` | Multi-step automated PR review: context gathering → obvious-noise pre-filter → parallel bug/security/consistency scan → batched scoring → deterministic filter → post |
 | `create-roadmap` | Clarify-first roadmap drafting — asks targeted questions before writing to reduce iteration cycles |
 | `edit-roadmap` | Surgically edit an existing roadmap, preserving structure and unchanged sections |
+| `manage-adr` | Create, update, or supersede ADRs after implementation is complete |
 | `junction` | Windows junction linking for skill directories into `~/.claude/skills/` |
 
 ### Agents

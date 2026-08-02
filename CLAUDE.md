@@ -7,6 +7,10 @@ Use the `/junction` skill to link skill directories from this repo into `~/.clau
 ## Global config setup
 `global/CLAUDE.md` is the version-controlled source for `~/.claude/CLAUDE.md` (user-level instructions). It's linked via a **file symlink** (created with developer mode enabled). Edits in either location update the same file on disk. Unlike hard links, symlinks survive atomic saves and git checkout without breaking.
 
+## Shared directory
+
+Files in shared directory are opt-in and are imported only to projects that need it. It is intentional and these files must not be leaked to user level CLAUDE.md
+
 @~/.claude/shared/adr-workflow.md
 
 ## Prompt evals (pending)
