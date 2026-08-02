@@ -1,10 +1,10 @@
 ---
 name: pre-compact
 description: >-
-  Write plan, plan status, problems, modified files, verification, blockers and next steps to PROGRESS.md before compacting
+  Write plan, plan status, problems, modified files, verification, blockers and next steps to tmp/PROGRESS.md before compacting
 disable-model-invocation: true
 ---
-Before we compact context, write our current progress to `PROGRESS.md`
+Before we compact context, write our current progress to `tmp/PROGRESS.md`
 in the project root (read and overwrite it if it exists, create if it doesn't).
 
 Include, in this structure:
