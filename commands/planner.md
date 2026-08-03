@@ -1,10 +1,16 @@
 ---
 name: planner
 description: >-
-  Write a plan than check that it's following best practices
+  Write a plan, then review it for YAGNI/DRY/KISS/SoC/SOLID violations before implementation
 disable-model-invocation: true
 argument-hint: [goal]
 ---
-Write a plan for the following query:
-$ARGUMENTS
-After you write a plan, review it for significant YAGNI, DRY, KISS, SoC and SOLID violations and flag them to user. Do not update plan before user decides whether these violations should be fixed and how they should be fixed.
+1. Write a plan for: $ARGUMENTS
+2. Review the plan for significant YAGNI, DRY, KISS, SoC, and SOLID violations. Report any
+   found directly in your response — do not silently fix them.
+3. Write a mermaid diagram of the affected data/control flow to
+   tmp/diagram-<kebab-case-goal-summary>.md and present it alongside the plan and any
+   flagged violations.
+4. Wait for the user to decide whether and how to address each flagged violation.
+5. If the user requests changes, update both the plan and the diagram to match before
+   exiting plan mode.
