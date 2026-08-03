@@ -1,8 +1,13 @@
 ## ADRs
-Before changing code in an area with existing ADRs, read `docs/adr/README.md`
-directly (no skill needed for this — it's a plain file read). Skip superseded
-entries for decision-making, but consult them if a current ADR cites one as
-"carried forward unchanged."
+Before changing code in an area with existing ADRs, locate the relevant ADRs by
+grepping the index `docs/adr/README.md` for the area name plus every connector
+or broker name and key technology involved (no skill needed for this — it's a
+plain file read). The index is a flat static table, so grep is exact; the only
+risk is recall, so search several terms. If nothing matches and the area is
+broad, fall back to grepping ADR file contents (`grep -ril <term> docs/adr/`)
+and then to reading the whole index. Take the next ADR number from the highest
+numbered row. Skip superseded entries for decision-making, but consult them if
+a current ADR cites one as "carried forward unchanged."
 
 When planning a change, include "record ADR" as the final step of the plan —
 do not invoke the manage-adr skill during planning. After implementation is
