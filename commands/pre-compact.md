@@ -7,6 +7,13 @@ disable-model-invocation: true
 Before we compact context, write our current progress to `tmp/PROGRESS.md`
 in the project root (read and overwrite it if it exists, create if it doesn't).
 
+**Verbatim rule (applies to every section below):** copy concrete values
+exactly as-is instead of paraphrasing — error output, config values/thresholds,
+file:line references, exact commands, and pass/fail counts or command output.
+If you catch yourself writing a vague descriptor ("some tests failed", "config
+was adjusted", "updated the file") in place of an exact value you actually
+have, stop and put the exact value in instead.
+
 Include, in this structure:
 
 ## Plan
@@ -20,8 +27,7 @@ differently than planned, say what changed and why.
 
 ## Problems encountered
 For each nontrivial problem hit during implementation:
-- what broke / what the symptom was (include the actual error output, 
-  not a paraphrase)
+- what broke / what the symptom was
 - root cause, if known
 - how it was resolved, or its current status if unresolved
 - any workaround or deviation from the plan this forced
