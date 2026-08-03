@@ -5,14 +5,17 @@ or broker name and key technology involved (no skill needed for this — it's a
 plain file read). The index is a flat static table, so grep is exact; the only
 risk is recall, so search several terms. If nothing matches and the area is
 broad, fall back to grepping ADR file contents (`grep -ril <term> docs/adr/`)
-and then to reading the whole index. Take the next ADR number from the highest
-numbered row. Skip superseded entries for decision-making, but consult them if
-a current ADR cites one as "carried forward unchanged."
+and then to reading the whole index. Skip superseded entries for
+decision-making, but consult them if a current ADR cites one as "carried forward
+unchanged."
 
 When planning a change, include "record ADR" as the final step of the plan —
 do not invoke the manage-adr skill during planning. After implementation is
 complete, you MUST invoke the manage-adr skill to create, update, or supersede
-the ADR. Do not hand-write or copy-template an ADR file yourself.
+the ADR. Do not hand-write or copy-template an ADR file yourself — the required
+sections (Context, Decision, Constraints, Consequences, Validation) are defined
+in the skill, so read existing ADRs only to understand prior decisions, never to
+learn the format.
 
 ## Roadmap lifecycle
 
