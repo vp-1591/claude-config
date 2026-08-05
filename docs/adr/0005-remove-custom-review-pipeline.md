@@ -26,10 +26,11 @@ working diff) for PR review going forward. No custom review agents or skills
 will be maintained to replace them.
 
 The ADR/roadmap consistency checks previously performed by
-`review-consistency` are preserved as a static review-guidelines section in
-the project `CLAUDE.md`. The built-in review follows `CLAUDE.md` like any
-Claude Code session, so the checks run automatically on `/review` and
-`/code-review` without a dedicated agent or skill to maintain.
+`review-consistency` are preserved as a static "PR review: ADR/roadmap
+consistency" section in `shared/adr-workflow.md`. Projects opt in by
+importing that file into their `CLAUDE.md`, which the built-in review follows
+like any Claude Code session — so the checks run automatically on `/review`
+and `/code-review` without a dedicated agent or skill to maintain.
 
 The roadmap-lifecycle conventions introduced by ADR 0004 remain unchanged
 (originally decided in ADR 0004, §Decision): the three roadmap statuses
@@ -46,8 +47,9 @@ the review pipeline.
   `edit-roadmap` flagging) must remain in force — they do not depend on the
   review pipeline.
 - No new review agents or skills may be added to replace the removed ones.
-- The consistency checks must remain static instructions in `CLAUDE.md` — no
-  scripts, agents, or orchestration behind them.
+- The consistency checks must remain static instructions in
+  `shared/adr-workflow.md` — no scripts, agents, or orchestration behind
+  them.
 - `README.md` must not reference the removed agents, skill, or scripts.
 - ADR 0001 (UTF-8 encoding for `review-context`) is superseded: the script it
   described no longer exists, and nothing carries forward.
@@ -58,12 +60,12 @@ the review pipeline.
   fixes in the review pipeline. Built-in review improves upstream and is
   already wired into Claude Code.
 - **Negative:** The consistency checks run as instructions inside
-  `CLAUDE.md`'s review-guidelines section, honored by the built-in review as
-  session context rather than as a dedicated enforcement pass — findings may
-  be softer than the old agent's deterministic output. Deterministic noise
-  pre-filtering, per-step model selection, and evidence-flag scoring are
-  gone; the built-in review covers the same ground but not with the same
-  pipeline characteristics.
+  `shared/adr-workflow.md`, honored by the built-in review as session context
+  rather than as a dedicated enforcement pass — findings may be softer than
+  the old agent's deterministic output. Deterministic noise pre-filtering,
+  per-step model selection, and evidence-flag scoring are gone; the built-in
+  review covers the same ground but not with the same pipeline
+  characteristics.
 - **Neutral:** `agents/` and `skills/review/` are removed from the repo and
   from `~/.claude` junctions.
 
@@ -72,8 +74,9 @@ the review pipeline.
 - `git ls-files | grep -E "agents/review-|skills/review"` returns nothing.
 - `grep -riE "review-context|review-consistency|review-issue-scorer|review-bug-scanner|review-security" .` returns nothing outside `docs/adr/` historical records.
 - `README.md` no longer lists the `review` skill or the review agents.
-- `CLAUDE.md` contains a review-guidelines section covering ADR/roadmap
-  consistency (docs agree, code matches docs, missing ADR, supersede-don't-
-  rewrite, roadmap decisions need ADRs, completed roadmaps).
+- `shared/adr-workflow.md` contains a PR-review consistency section covering
+  ADR/roadmap checks (docs agree, code matches docs, missing ADR,
+  supersede-don't-rewrite, roadmap decisions need ADRs, completed roadmaps),
+  and the project `CLAUDE.md` imports it.
 - `/review` on a GitHub PR (or `/code-review` on the working diff) invokes Claude Code's built-in review and follows those guidelines.
 - `docs/adr/README.md` marks 0001 and 0004 as superseded by this ADR.
