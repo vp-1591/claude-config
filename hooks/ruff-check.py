@@ -4,82 +4,38 @@
 Reads the Claude Code hook input JSON from stdin and runs ``ruff check
 --fix`` on the edited ``.py`` file, using the ruff installed in the venv of
 the project the file belongs to. The venv is found by walking up from the
-edited file looking for ``.venv``/``venv`` (bounded by the project root);
-``$VIRTUAL_ENV`` is used as a fallback. This makes the hook uv-independent
-and pins linting to the exact ruff version the project has installed, so
-results match a local ``.venv/Scripts/ruff`` / ``uv run ruff`` invocation.
+edited file (see hook_common.find_venv); ``$VIRTUAL_ENV`` is used as a
+fallback. This makes the hook uv-independent and pins linting to the exact
+ruff version the project has installed, so results match a local
+``.venv/Scripts/ruff`` / ``uv run ruff`` invocation.
 
 If the project has no venv, or its venv has no ruff installed, the hook
 skips silently (exit 0) so it never blocks edits in projects that don't use
-ruff.
+ruff. If ruff exceeds the timeout (hook_common.TOOL_TIMEOUT_SECONDS) the
+hook skips too rather than stalling the edit.
 
 Exit codes follow Claude Code hook semantics:
-  0  no issues, nothing to lint, or no ruff available -- pass through
+  0  no issues, nothing to lint, no ruff available, or timeout -- pass through
   2  ruff reported/fixed issues -- tool result is blocked and this report is
      surfaced to the model as the error
 """
 
-import json
-import os
-import subprocess
 import sys
 from pathlib import Path
 
-VENV_DIRS = (".venv", "venv")
-
-
-def _venv_python(venv: Path) -> Path:
-    sub = "Scripts/python.exe" if sys.platform == "win32" else "bin/python"
-    return venv / sub
-
-
-def find_venv(start: Path) -> Path | None:
-    """Closest project venv for a file at ``start``, or None.
-
-    Walks up from ``start``; the first directory containing a ``.venv`` or
-    ``venv`` with a python interpreter wins. Stops at ``$CLAUDE_PROJECT_DIR``
-    when set (the project root Claude Code itself uses for this session);
-    otherwise falls back to the first directory with ``.git`` or
-    ``pyproject.toml``. Falls back to ``$VIRTUAL_ENV`` when no local venv is
-    found.
-    """
-    project_root = os.environ.get("CLAUDE_PROJECT_DIR")
-    boundary = Path(project_root).resolve() if project_root else None
-
-    current = start
-    while True:
-        for name in VENV_DIRS:
-            candidate = current / name
-            if candidate.is_dir() and _venv_python(candidate).is_file():
-                return candidate
-        if boundary is not None:
-            if current.resolve() == boundary:
-                break
-        elif (current / ".git").is_dir() or (current / "pyproject.toml").is_file():
-            break
-        if current.parent == current:
-            break
-        current = current.parent
-    active = os.environ.get("VIRTUAL_ENV")
-    if active:
-        candidate = Path(active)
-        if candidate.is_dir() and _venv_python(candidate).is_file():
-            return candidate
-    return None
-
-
-def find_ruff(venv: Path) -> Path | None:
-    """Path to the venv's ruff executable, or None if not installed."""
-    bindir = venv / ("Scripts" if sys.platform == "win32" else "bin")
-    exe = bindir / ("ruff.exe" if sys.platform == "win32" else "ruff")
-    return exe if exe.is_file() else None
+from hook_common import (
+    ensure_utf8_stderr,
+    find_tool,
+    find_venv,
+    read_hook_input,
+    run_tool,
+)
 
 
 def main() -> int:
-    sys.stderr.reconfigure(encoding="utf-8")
-    try:
-        data = json.load(sys.stdin)
-    except (json.JSONDecodeError, OSError):
+    ensure_utf8_stderr()
+    data = read_hook_input()
+    if data is None:
         return 0  # no/blank input; nothing to lint
 
     file_path = (data.get("tool_input") or {}).get("file_path") or ""
@@ -87,11 +43,11 @@ def main() -> int:
         return 0
 
     venv = find_venv(Path(file_path).parent)
-    ruff = find_ruff(venv) if venv else None
+    ruff = find_tool(venv, "ruff") if venv else None
     if ruff is None:
         return 0  # no project venv, or no ruff in it -- skip
 
-    result = subprocess.run(
+    result = run_tool(
         [
             str(ruff),
             "check",
@@ -100,11 +56,11 @@ def main() -> int:
             "--exit-non-zero-on-fix",
             file_path,
         ],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
+        cwd=Path(file_path).parent,
     )
+    if result is None:
+        print(f"ruff timed out on {file_path}; skipping", file=sys.stderr)
+        return 0
     if result.returncode != 0:
         print(f"{file_path}:\n", file=sys.stderr)
         if result.stdout:
