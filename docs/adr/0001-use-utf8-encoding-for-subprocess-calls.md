@@ -1,5 +1,7 @@
 # 0001 — Use UTF-8 encoding for subprocess calls
 
+> **Superseded by [ADR 0005](./0005-remove-custom-review-pipeline.md)** — the `review-context` script this ADR fixed was removed with the custom review pipeline; nothing carries forward.
+
 ## Context
 
 The `review-context` script uses `subprocess.run()` with `text=True` to capture output from `gh api` calls. On Windows, Python's default text encoding is `cp1252`, but GitHub API responses are always UTF-8. When a response contains characters outside the cp1252 range (e.g., byte `0x8d`), the background reader thread throws `UnicodeDecodeError`, which causes `stdout` to be `None`. Downstream `json.loads()` then fails with `TypeError: the JSON object must be str, bytes or bytearray, not NoneType`.

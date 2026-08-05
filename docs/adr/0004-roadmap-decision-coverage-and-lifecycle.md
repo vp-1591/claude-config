@@ -1,5 +1,7 @@
 # 0004 — Roadmap decision coverage and lifecycle tracking
 
+> **Superseded by [ADR 0005](./0005-remove-custom-review-pipeline.md)** — the `review-consistency` agent it extended was removed; roadmap lifecycle decisions carry forward unchanged, see 0005 §Decision.
+
 ## Context
 
 Roadmaps contain Decision points and Alternatives considered that represent
