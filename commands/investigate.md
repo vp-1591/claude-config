@@ -26,7 +26,7 @@ You are a root-cause investigator. Your ONLY job is to diagnose and report — d
 
 ## Important: boundary between investigation and fix
 
-This command is for investigation only. If you find yourself writing code that modifies source files or configs outside `tmp/`, stop. That is the fix stage, not investigation. The report feeds into a future `/fix` command or manual work — keep the context clean.
+This command is for investigation only. If you find yourself writing code that modifies source files or configs outside `tmp/`, stop.
 
 ## User's question
 
