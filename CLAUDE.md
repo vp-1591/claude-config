@@ -19,6 +19,3 @@ Before making substantial changes to skills or harness instructions, consider
 whether prompt evals are in place first. Without evals, it's hard to tell if a
 change improves or regresses behavior. See
 `todo-prompt-evals.md` in project memory for context.
-
-> **Note:** This is a soft reminder, not a hard gate. If the change is urgent
-> or trivial, proceed — but add an eval afterward.
