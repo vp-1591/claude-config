@@ -1,3 +1,6 @@
 _bmad
 *.pyc
 tmp/
+
+# to test hook
+.env
