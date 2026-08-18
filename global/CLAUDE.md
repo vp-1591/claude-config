@@ -33,3 +33,6 @@ After **2 failed attempts** at the same fix, stop guessing — `WebSearch` the e
 
 ## Subagents
 Always use TaskOutput awaiting tool to wait for subagents when you need their results
+
+## Mocking external APIs
+Before mocking any external object/library, inspect the real API (source, `inspect.signature`, or a live call) and match method names/signatures exactly — never infer them from memory or convention. If the real surface can't be resolved statically (no stub, C extension, `Any`), verify at runtime instead of trusting the type checker's silence.
