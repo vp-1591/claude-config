@@ -1,6 +1,6 @@
 ---
 name: manage-adr
-description: Record an important completed change (feature, infra, or behavior change) as an ADR. Not every fix or refactor qualifies — see the gate in the skill body. Invoke after implementation is complete; it is the final step of a change, not a planning step. Do not use for reading existing ADRs; locate them by grepping docs/adr/README.md for the area, connector, or technology involved.
+description: Record an important completed change (feature, infra, or behavior change) as an ADR. Not every fix or refactor qualifies — see the gate in the skill body. Invoke after implementation, not during planning. Do not use for reading existing ADRs; locate them by grepping docs/adr/README.md for the area, connector, or technology involved.
 model: sonnet
 ---
 ## Architecture Decision Records (ADRs)
@@ -11,12 +11,16 @@ ADR — create one only when it passes **all three**:
 
 ### When to record an ADR
 
-1. **Revert test** — a future reader (human or agent) with no context would
-   plausibly undo this in favor of the obvious alternative. A bug fix or
-   routine implementation fails here: the *why* doesn't need defending if
-   nobody would revert it.
-2. **At least two** of these signals:
-   - A plausible alternative was rejected for a non-obvious reason.
+1. **Decision, not correction** — the change *chooses among outcomes
+   reasonable engineers could disagree on* (a reversal, a tradeoff, a
+   lock-in, a new convention), not merely makes the code match a state a
+   prior ADR or spec already described. A correction, bug fix, or routine
+   implementation fails here: the *why* doesn't need defending if nobody
+   would revert it — record it as a `# Decision:` comment instead.
+2. **At least two** of these signals, **one durable** (hard-to-reverse,
+   convention, constraint, security, or real downside):
+   - A plausible alternative was rejected for a non-obvious reason — one a
+     future reader would plausibly re-choose.
    - Hard to reverse (public interface, data schema, migration, dependency
      or provider lock-in).
    - Sets or changes a convention other code will inherit.
@@ -24,16 +28,17 @@ ADR — create one only when it passes **all three**:
    - Knowingly accepts a real downside — the Consequences name a genuine
      negative, not just "the bug is fixed."
    - Crosses a security, privacy, or IAM boundary.
-   - The *why* is not recoverable from reading the code alone.
-3. **No suppressor**: a bug fix restoring already-intended behavior (a
-   correction, not a decision); a one-character / single-config-value / typo
-   fix; routine follow-through of an already-recorded ADR; a grab-bag of
+   - The *why* is not recoverable from reading the code alone — nor from
+     the prior ADR the change implements.
+3. **No suppressor**: a one-character / single-config-value / typo fix;
+   routine follow-through of an already-recorded ADR; a grab-bag of
    unrelated small fixes (belongs in the PR — split out any one that
    qualifies on its own); a pure internal refactor with no new pattern
    adopted; or the only alternative is "leave the bug."
 
-**Borderline** (exactly one signal, e.g. a convention with no tradeoff):
-prefer a code comment (`# Decision: docs/adr/…`, see below) over a full ADR.
+**Borderline** (exactly one signal, or two non-durable ones, e.g. a
+convention with no tradeoff): prefer a code comment (`# Decision:
+docs/adr/…`, see below) over a full ADR.
 
 Each ADR must contain:
 
@@ -44,27 +49,23 @@ Each ADR must contain:
 
 - `## Decision` — what was chosen and why. State the decision explicitly, then
   explain the reasoning. Include key alternatives considered and why they were
-  rejected. A reader should be able to understand not just what was decided, but
-  why other options didn't win.
+  rejected.
 
 - `## Constraints` — what this decision rules out or must not break. List
   boundaries: things that must remain true (existing connectors keep working, no
   new AWS resources, must support Python 3.11+, etc.) and things that are
-  explicitly out of scope. This section prevents scope creep and makes the
-  decision's limits clear.
+  explicitly out of scope.
 
 - `## Consequences` — trade-offs, side effects, and follow-up work. What becomes
   easier or harder? What new dependencies or risks does this introduce? What will
   need to change later? Include both positive and negative outcomes.
 
-- `## Validation` — how to verify this decision was implemented correctly. Reference
-  specific tests, manual checks, or CI steps that confirm the change works. Vague
-  statements like "tests pass" should be replaced with concrete verification: which
-  tests, what they assert, what manual steps were performed.
+- `## Validation` — how to verify this decision was implemented correctly. Name
+  specific tests, what they assert, and manual steps — not just "tests pass".
 
 ### Workflow
 
-This skill runs after implementation. Before writing the new ADR, locate
+Before writing the new ADR, locate
 relevant existing ADRs by grepping `docs/adr/README.md` for the area,
 connectors, and technologies touched, and read them. Skip superseded entries
 unless a current ADR cites one as carried forward unchanged. If an active ADR
