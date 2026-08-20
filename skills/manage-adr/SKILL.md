@@ -48,8 +48,11 @@ Each ADR must contain:
   reader unfamiliar with the project can understand *why* this decision came up.
 
 - `## Decision` — what was chosen and why. State the decision explicitly, then
-  explain the reasoning. Include key alternatives considered and why they were
-  rejected.
+  explain the reasoning. Name the goal this decision serves as its own
+  sentence, separate from the mechanism chosen to serve it — a later ADR
+  changing the mechanism needs this to check whether the goal still holds. If
+  no goal is evident, stop and ask the user rather than inventing one. Include
+  key alternatives considered and why they were rejected.
 
 - `## Constraints` — what this decision rules out or must not break. List
   boundaries: things that must remain true (existing connectors keep working, no
