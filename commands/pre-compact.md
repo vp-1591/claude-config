@@ -6,6 +6,7 @@ disable-model-invocation: true
 ---
 Before we compact context, write our current progress to `tmp/PROGRESS.md`
 in the project root (read and overwrite it if it exists, create if it doesn't).
+This file maximum allowed length is 2000 tokens.
 
 **Verbatim rule (applies to every section below):** copy concrete values
 exactly as-is instead of paraphrasing — error output, config values/thresholds,
@@ -22,8 +23,8 @@ of the overall goal.
 
 ## Plan status
 Go through the plan step by step: which steps are done, in progress, 
-not started, or skipped/changed. If any step was implemented 
-differently than planned, say what changed and why.
+not started, or skipped/changed. Each item must be brief and don't repeat what was already written. 
+If any step was implemented differently than planned, say what changed and why.
 
 ## Problems encountered
 For each nontrivial problem hit during implementation:
