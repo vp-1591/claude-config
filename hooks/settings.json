@@ -20,23 +20,16 @@
         ]
       }
     ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"C:/Users/vadim/.claude/hooks/ruff-check.py\""
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
             "command": "python \"C:/Users/vadim/.claude/hooks/pyright-check.py\""
+          },
+          {
+            "type": "command",
+            "command": "python \"C:/Users/vadim/.claude/hooks/ruff-check.py\""
           }
         ]
       }
