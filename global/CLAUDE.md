@@ -37,10 +37,21 @@ Always use TaskOutput awaiting tool to wait for subagents when you need their re
 ## Mocking
 
 ### External APIs
-Before mocking any external object/library, inspect the real API (source, `inspect.signature`, or a live call) and match method names/signatures exactly — never infer them from memory or convention. If the real surface can't be resolved statically (no stub, C extension, `Any`), verify at runtime instead of trusting the type checker's silence.
+Before mocking any external object/library, inspect the real API (source, `inspect.signature`, or a live call) and match method names/signatures exactly — never infer them from memory or convention. If the real surface can't be resolved statically (no stub, C extension, `Any`), verify at runtime instead of trusting the type checker's silence. This obligation extends beyond mocks — see `Mirroring external behavior`.
 
 ### Internal Functions
 Never mock the code that belongs to current project and may change without explicit decision from user.
+
+## Mirroring external behavior
+
+Any place the project encodes what an external dependency does — test fixtures,
+cache-completeness checks, preflight gates, and mocks — must be derived from the
+dependency's source or a live probe, never from memory (yours or the code's own
+list). That means behavior — what it reads, and *when* (fetches are often lazy,
+at first use) — not just method signatures. A fixture built from the
+code-under-test's own list proves nothing; keep one test that exercises the real
+dependency end-to-end and can disagree with the list. Cite the source (file:line)
+next to hand-maintained requirement lists.
 
 ## Docstrings and comments
 Docstrings state interface, behavior, and non-obvious *why* — never restate implementation. Comments explain *why*; never restate the line below them. Don't re-explain the same logic across sibling methods — reference the one place it's explained.
