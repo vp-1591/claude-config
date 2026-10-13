@@ -4,7 +4,7 @@ Version control for my Claude Code configuration files, plus a lightweight harne
 
 ## Why
 
-AI-assisted development drifts without structure: decisions get made and forgotten, plans go stale. This repo adds just enough process to prevent that — roadmaps for forward-looking plans, ADRs as permanent decision records, and review-time consistency checks — while staying small enough to fit the token budget of a side project. Anything Claude Code already does well (planning, editing, reviewing) is reused rather than reimplemented.
+AI-assisted development drifts without structure: decisions get made and forgotten, plans go stale. This repo adds just enough process to prevent that — roadmaps for forward-looking plans, ADRs as permanent decision records, and review-time consistency checks . Anything Claude Code already does well (planning, editing, reviewing) is reused rather than reimplemented.
 
 ## What's included
 
@@ -50,7 +50,7 @@ AI-assisted development drifts without structure: decisions get made and forgott
 
 | Path | Description |
 |------|-------------|
-| `shared/adr-workflow.md` | Architecture Decision Record workflow guidelines (opt-in, imported per project) |
+| `shared/adr-workflow.md` | ADR rules, roadmap lifecycle, and PR-time consistency checks between code, ADRs, and roadmaps (opt-in, imported per project) |
 
 ### Docs
 
