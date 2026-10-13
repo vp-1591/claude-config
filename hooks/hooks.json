@@ -35,17 +35,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/block-dotenv-reads.py"]
-          }
-        ]
-      },
-      {
-        "matcher": "Read|Grep",
+        "matcher": "Bash|Read|Grep",
         "hooks": [
           {
             "type": "command",

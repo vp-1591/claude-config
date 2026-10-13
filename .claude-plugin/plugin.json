@@ -1,6 +1,7 @@
 {
   "name": "config",
   "description": "Lightweight methodology harness: roadmap/ADR skills, planning agents and commands, lint and guard hooks.",
+  "version": "1.0.0",
   "displayName": "Claude Config",
   "author": {
     "name": "vp-1591"

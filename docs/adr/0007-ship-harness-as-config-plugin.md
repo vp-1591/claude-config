@@ -71,6 +71,15 @@ Alternatives rejected:
   names.
 - Negative: components of a plugin enabled at user scope load in every
   project; per-project opt-out is coarser than not junctioning a directory.
+- Negative: `claude plugin install`/`update` snapshots the entire working
+  tree — **including gitignored files** — into
+  `~/.claude/plugins/cache/claude-config/config/<sha>/`. The snapshot has
+  been observed to contain the gitignored `.env`, `tmp/`,
+  `.claude/settings.local.json`, and `__pycache__`. The repo guards `.env`
+  reads with a PreToolUse hook, yet the install mechanism copies the file
+  outside the repo. Accepted risk: the cache is user-profile-local and
+  orphaned snapshots are cleaned up after 14 days; the `.env` file stays in
+  the repo, and the existing snapshot can be deleted once orphaned.
 - `claude plugin validate` cannot verify `${CLAUDE_PLUGIN_ROOT}` script
   resolution — hook changes must be verified by firing the hooks (debug log),
   not by validation alone.

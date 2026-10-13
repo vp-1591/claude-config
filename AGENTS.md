@@ -11,7 +11,7 @@ claude plugin install config@claude-config --scope user
 
 The marketplace entry uses a relative source path, so the plugin loads in place from the working tree — repo edits are live on the next session start or `/reload-plugins`, no reinstall needed.
 
-The `/junction` skill is now only for what the plugin cannot ship: junctioning `shared/` into a project's `.claude/` and symlinking `global/CLAUDE.md` to `~/.claude/CLAUDE.md`.
+The `/junction` skill is now only for what the plugin cannot ship: junctioning `shared/` to `~/.claude/shared` (projects then opt in per-project via `@import`) and symlinking `global/CLAUDE.md` to `~/.claude/CLAUDE.md`.
 
 ## Global config setup
 `global/CLAUDE.md` is the version-controlled source for `~/.claude/CLAUDE.md` (user-level instructions). It's linked via a **file symlink** (created with developer mode enabled). Edits in either location update the same file on disk. Unlike hard links, symlinks survive atomic saves and git checkout without breaking.

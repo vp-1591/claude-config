@@ -24,7 +24,11 @@ The marketplace entry uses a relative source path, so the plugin loads in place 
 | `create-roadmap` | Clarify-first roadmap drafting — asks targeted questions before writing to reduce iteration cycles |
 | `edit-roadmap` | Surgically edit an existing roadmap, preserving structure and unchanged sections |
 | `manage-adr` | Create, update, or supersede ADRs after implementation is complete |
-| `junction` | Windows junction linking for skill directories into `~/.claude/skills/` |
+
+> `junction` is **not** part of the plugin: it's a project-level skill
+> (`.claude/skills/junction`, this repo only) that links what the plugin
+> cannot ship — `shared/` into `~/.claude/shared` and the
+> `global/CLAUDE.md` → `~/.claude/CLAUDE.md` symlink.
 
 ### Agents
 
