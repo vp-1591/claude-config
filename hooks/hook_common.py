@@ -2,9 +2,9 @@
 """Shared helpers for Claude Code hook scripts (ruff-check.py, pyright-check.py).
 
 Python puts the hook script's own directory on sys.path, so ``import
-hook_common`` resolves whether the hook runs from the repo or from a
-junctioned copy under ~/.claude/hooks. Everything common to the two hooks
-lives here:
+hook_common`` resolves wherever the hook runs from: the repo (plugin root,
+referenced via ``${CLAUDE_PLUGIN_ROOT}``) or a plugin cache snapshot.
+Everything common to the two hooks lives here:
 
   - locating a project venv (walk up, bounded by CLAUDE_PROJECT_DIR)
   - locating a tool executable inside that venv

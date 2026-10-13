@@ -1,10 +1,11 @@
-## hooks/settings.json
+## hooks/hooks.json
 
-Version-controlled, hooks-only mirror of the `hooks` section in
-`~/.claude/settings.json` (which is not in this repo). `~/.claude/hooks` is
-symlinked here, so scripts in this directory are live — but hook
-*registrations* are not.
+Hook registrations shipped by the `config` plugin (repo root is the plugin
+root — see `.claude-plugin/plugin.json`). Scripts are invoked via
+`${CLAUDE_PLUGIN_ROOT}/hooks/...` paths, so they resolve inside the repo
+regardless of what exists under `~/.claude`.
 
-When adding, moving, or removing a hook registration, update both
-`hooks/settings.json` and `~/.claude/settings.json` in the same change
-and keep them in sync before opening a PR. Nothing detects drift.
+`~/.claude/settings.json` must not hold a `hooks` section: hooks registered
+there and in this file both run on every event (no deduplication), so any
+leftover settings-level registration means the hook fires twice. To add,
+move, or remove a registration, edit only `hooks/hooks.json`.

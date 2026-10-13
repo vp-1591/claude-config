@@ -1,6 +1,6 @@
 ---
 name: junction
-description: Create a Windows junction (directory symlink, mklink /J) from a repo directory to the user's .claude directory so skills, configs, and shared files are auto-synced without manual linking per item. Use this when asked to link, symlink, junction, or connect a repo folder into .claude -- especially for batch-linking all skills at once instead of one-by-one.
+description: Create a Windows junction (directory symlink, mklink /J) from a repo directory to the user's ~/.claude directory, so the linked files (e.g. shared/ imports) are available without manual per-file linking. Use this when asked to link, symlink, junction, or connect a repo folder into .claude. Only for directories the config plugin cannot ship (shared/, global CLAUDE.md symlink) -- never skills/, commands/, agents/, or hooks/.
 ---
 
 Create a Windows junction (directory symlink, equivalent to `mklink /J`) from a
@@ -57,6 +57,11 @@ This creates: `~/.claude/shared` -> `<repo-root>/shared`
 
 ## Notes
 
+- Do **not** junction `skills/`, `commands/`, `agents/`, or `hooks/`: they ship
+  via the `config` plugin (repo root is the plugin root). A leftover junction
+  duplicates them — plugin copies get skipped in favor of the user-level ones,
+  edits appear live from a stale copy, and hooks registered in both places
+  run twice.
 - Use `powershell.exe -Command` -- `cmd.exe /c mklink /J` output is unreliable
   in this environment.
 - The source directory stays in version control. The junction is just a

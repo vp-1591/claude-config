@@ -1,0 +1,14 @@
+{
+  "name": "claude-config",
+  "description": "Personal Claude Code harness: methodology skills, agents, commands, and hooks.",
+  "owner": {
+    "name": "vp-1591"
+  },
+  "plugins": [
+    {
+      "name": "config",
+      "source": "./",
+      "description": "Lightweight methodology harness: roadmap/ADR skills, planning agents and commands, lint and guard hooks."
+    }
+  ]
+}
